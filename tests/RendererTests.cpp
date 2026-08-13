@@ -1,7 +1,9 @@
 #include <cassert>
+#include <cmath>
 #include <functional>
 #include <iostream>
 #include <memory>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -78,13 +80,15 @@ TEST_CASE(rerender_identical_graph_does_not_recreate_nodes) {
 
     SymbolicAudioGraph graph1;
     graph1.graphs.push_back(makeConstNode(440.0));
-    renderer.renderGraph(graph1, 20.0, 20.0);
+    int result1 = renderer.renderGraph(graph1, 20.0, 20.0);
+    assert(result1 == ReturnCode::Ok());
 
     auto const snapAfterFirst = runtime->snapshot();
 
     SymbolicAudioGraph graph2;
     graph2.graphs.push_back(makeConstNode(440.0));
-    renderer.renderGraph(graph2, 20.0, 20.0);
+    int result2 = renderer.renderGraph(graph2, 20.0, 20.0);
+    assert(result2 == ReturnCode::Ok());
 
     auto const snapAfterSecond = runtime->snapshot();
 
@@ -151,13 +155,38 @@ TEST_CASE(shared_subtree_mounted_once_appended_twice) {
     SymbolicAudioGraph graph;
     graph.graphs.push_back(sum);
 
-    renderer.renderGraph(graph, 20.0, 20.0);
+    // Use zero fade times so the root's fade-in ramp doesn't attenuate the
+    // very first processed block (a 20ms fade at 44.1kHz spans 882 samples,
+    // longer than the small block we process below).
+    renderer.renderGraph(graph, 0.0, 0.0);
 
     auto const snap = runtime->snapshot();
 
     // Mounted nodes: shared const, add, root. The shared const is mounted once
     // despite being referenced twice as a child of "add".
     assert(snap.size() == 3);
+
+    // The snapshot alone can't prove that "add" actually has two inlets wired
+    // to the shared const node (it only exposes node properties, not edges),
+    // so run real audio through the graph: if both inlets are wired to
+    // const(1.0), "add" should output ~2.0. If only one inlet were wired
+    // (e.g. a broken/deduped appendChild), it would output ~1.0 instead.
+    constexpr size_t numChannels = 1;
+    constexpr size_t numSamples = 64;
+
+    std::vector<double> outputBuffer(numSamples, 0.0);
+    double* outputPtr = outputBuffer.data();
+    double** outputChannelData = &outputPtr;
+
+    // Even with 0ms fade times, the root's gain ramp needs one sample to step
+    // from its initial gain of 0 up to 1, so warm up with a throwaway block
+    // before asserting on steady-state output.
+    runtime->process(nullptr, 0, outputChannelData, numChannels, numSamples, nullptr);
+    runtime->process(nullptr, 0, outputChannelData, numChannels, numSamples, nullptr);
+
+    for (size_t i = 0; i < numSamples; ++i) {
+        assert(std::abs(outputBuffer[i] - 2.0) < 1e-6);
+    }
 }
 
 TEST_CASE(multiple_top_level_graphs_get_distinct_roots) {
@@ -177,17 +206,24 @@ TEST_CASE(multiple_top_level_graphs_get_distinct_roots) {
     // props).
     assert(snap.size() == 4);
 
-    int rootCount = 0;
+    std::set<int> rootChannels;
 
     for (auto const& [nodeIdHex, props] : snap) {
         auto const& obj = props.getObject();
 
         if (obj.count("fadeInMs") > 0) {
-            rootCount++;
+            auto const it = obj.find("channel");
+            assert(it != obj.end());
+            assert(it->second.isNumber());
+            rootChannels.insert(static_cast<int>((js::Number) it->second));
         }
     }
 
-    assert(rootCount == 2);
+    // Each root wrapper must carry its own distinct channel index (0 and 1),
+    // not merely be distinguishable by node count.
+    assert(rootChannels.size() == 2);
+    assert(rootChannels.count(0) > 0);
+    assert(rootChannels.count(1) > 0);
 }
 
 } // namespace

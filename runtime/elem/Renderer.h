@@ -25,7 +25,7 @@ namespace elem {
         Renderer(std::shared_ptr<Runtime<FloatType>> runtime);
 
         // TODO: return statistics for benchmarking
-        void renderGraph(SymbolicAudioGraph graph, double rootFadeInMs, double rootFadeOutMs);
+        int renderGraph(SymbolicAudioGraph graph, double rootFadeInMs, double rootFadeOutMs);
     private:
         //==============================================================================
         // Instruction batching
@@ -205,7 +205,7 @@ namespace elem {
     Renderer<FloatType>::Renderer(std::shared_ptr<Runtime<FloatType>> runtime) : runtime{std::move(runtime)} {}
 
     template <typename FloatType>
-    void Renderer<FloatType>::renderGraph(SymbolicAudioGraph graph, double rootFadeInMs, double rootFadeOutMs) {
+    int Renderer<FloatType>::renderGraph(SymbolicAudioGraph graph, double rootFadeInMs, double rootFadeOutMs) {
         InstructionBatch batch;
         std::unordered_set<int> visited;
         std::vector<int> rootHashes;
@@ -216,7 +216,7 @@ namespace elem {
             rootHashes.push_back(visit(root, visited, batch));
         }
 
-        runtime->applyInstructions(batch.flatten(rootHashes));
+        return runtime->applyInstructions(batch.flatten(rootHashes));
     }
 
     template <typename FloatType>
