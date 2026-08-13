@@ -25,6 +25,13 @@
 
 namespace elem
 {
+    enum class RuntimeInstructionType {
+        CREATE_NODE = 0,
+        APPEND_CHILD = 2,
+        SET_PROPERTY = 3,
+        ACTIVATE_ROOTS = 4,
+        COMMIT_UPDATES = 5,
+    };
 
     // The Runtime is the primary interface for embedding the Elementary engine within
     // your project, independent of the JavaScript engine.
@@ -112,13 +119,6 @@ namespace elem
     private:
         //==============================================================================
         // The rendering interface
-        enum class InstructionType {
-          CREATE_NODE = 0,
-          APPEND_CHILD = 2,
-          SET_PROPERTY = 3,
-          ACTIVATE_ROOTS = 4,
-          COMMIT_UPDATES = 5,
-        };
 
         int createNode(js::Value const& nodeId, js::Value const& type);
         int setProperty(js::Value const& nodeId, js::Value const& prop, js::Value const& v);

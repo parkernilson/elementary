@@ -48,8 +48,10 @@ namespace js
         Value (Null v)                  : var(v) {}
         Value (Boolean v)               : var(v) {}
         Value (Number v)                : var(v) {}
+        Value (int v)                   : var(static_cast<Number>(v)) {}
         Value (char const* v)           : var(String(v)) {}
         Value (String const& v)         : var(v) {}
+        Value (String&& v)              : var(std::move(v)) {}
         Value (Array const& v)          : var(v) {}
         Value (Float32Array const& v)   : var(v) {}
         Value (Object const& v)         : var(v) {}
