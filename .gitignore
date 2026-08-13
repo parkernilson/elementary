@@ -1,6 +1,7 @@
 build
 dist
 node_modules
+.worktrees
 
 .merlin
 .cljs_node_repl
