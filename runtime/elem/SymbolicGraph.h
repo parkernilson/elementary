@@ -9,6 +9,12 @@ namespace elem {
     struct SymbolicGraphNodeShallow {
         std::string type;
         std::unordered_map<std::string, js::Value> props;
+
+        // Identifies which output channel of this node is being addressed when it
+        // is referenced as a child of another node. This is mixed into the parent's
+        // structural hash so that two references to different output channels of
+        // the same node produce different hashes.
+        int outputChannel = 0;
     };
 
     struct SymbolicGraphNode : SymbolicGraphNodeShallow {
