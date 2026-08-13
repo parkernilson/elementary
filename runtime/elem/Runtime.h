@@ -182,24 +182,24 @@ namespace elem
             if(!ar[0].isNumber())
                 return ReturnCode::InvalidInstructionFormat();
 
-            auto const cmd = static_cast<InstructionType>(static_cast<int>((elem::js::Number) ar[0]));
+            auto const cmd = static_cast<RuntimeInstructionType>(static_cast<int>((elem::js::Number) ar[0]));
             auto res = ReturnCode::Ok();
 
             switch (cmd) {
-                case InstructionType::CREATE_NODE:
+                case RuntimeInstructionType::CREATE_NODE:
                     res = createNode(ar[1], ar[2]);
                     break;
-                case InstructionType::SET_PROPERTY:
+                case RuntimeInstructionType::SET_PROPERTY:
                     res = setProperty(ar[1], ar[2], ar[3]);
                     break;
-                case InstructionType::APPEND_CHILD:
+                case RuntimeInstructionType::APPEND_CHILD:
                     res = appendChild(ar[1], ar[2], ar[3]);
                     break;
-                case InstructionType::ACTIVATE_ROOTS:
+                case RuntimeInstructionType::ACTIVATE_ROOTS:
                     res = activateRoots(ar[1]);
                     shouldRebuild = true;
                     break;
-                case InstructionType::COMMIT_UPDATES:
+                case RuntimeInstructionType::COMMIT_UPDATES:
                     if (shouldRebuild) {
                         rseqQueue.push(buildRenderSequence());
                     }

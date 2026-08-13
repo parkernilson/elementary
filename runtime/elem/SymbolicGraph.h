@@ -6,10 +6,6 @@
 #include "Value.h"
 
 namespace elem {
-    // TODO: Should the graph nodes generate their hash at creation?
-    // or should the reconciliation algorithm be in charge of providing hashes
-    // and storing them in the graph?
-
     struct SymbolicGraphNodeShallow {
         std::string type;
         std::unordered_map<std::string, js::Value> props;
