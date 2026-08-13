@@ -1,6 +1,7 @@
 #pragma once
 #include <algorithm>
 #include <map>
+#include <set>
 #include <unordered_set>
 #include <utility>
 #include "JSON.h"
@@ -25,7 +26,19 @@ namespace elem {
         Renderer(std::shared_ptr<Runtime<FloatType>> runtime);
 
         // TODO: return statistics for benchmarking
-        int renderGraph(SymbolicAudioGraph graph, double rootFadeInMs, double rootFadeOutMs);
+        [[nodiscard]] int renderGraph(SymbolicAudioGraph graph, double rootFadeInMs, double rootFadeOutMs);
+
+        // Removes the given node hashes from this Renderer's nodeMap, matching a
+        // set of nodes that Runtime::gc() has already cleared from its own
+        // nodeTable. Call this after Runtime::gc() to keep this Renderer's
+        // reconciliation state in sync with the Runtime; skipping it means stale
+        // entries in nodeMap will cause future renders referencing those hashes
+        // to fail with NodeNotFound once the Runtime has actually discarded them.
+        void prune(std::set<int> const& hashes) {
+            for (auto const& hash : hashes) {
+                nodeMap.erase(hash);
+            }
+        }
     private:
         //==============================================================================
         // Instruction batching
