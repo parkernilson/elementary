@@ -1,10 +1,16 @@
 #include <cassert>
 #include <functional>
 #include <iostream>
+#include <memory>
 #include <string>
 #include <vector>
 
+#include "elem/Renderer.h"
+#include "elem/Runtime.h"
+
 namespace {
+
+using namespace elem;
 
 struct TestCase {
     std::string name;
@@ -29,6 +35,159 @@ struct Registrar {
 
 TEST_CASE(smoke_test_build_wiring_works) {
     assert(1 + 1 == 2);
+}
+
+SymbolicGraphNode makeConstNode(double value) {
+    SymbolicGraphNode node;
+    node.type = "const";
+    node.props = {{"value", js::Value(static_cast<js::Number>(value))}};
+    return node;
+}
+
+TEST_CASE(first_render_creates_node_and_sets_props) {
+    auto runtime = std::make_shared<Runtime<double>>(44100.0, 512);
+    Renderer<double> renderer(runtime);
+
+    SymbolicAudioGraph graph;
+    graph.graphs.push_back(makeConstNode(440.0));
+
+    renderer.renderGraph(graph, 20.0, 20.0);
+
+    auto snap = runtime->snapshot();
+
+    // Expect exactly two mounted nodes: the const node and its root wrapper.
+    assert(snap.size() == 2);
+
+    bool foundConstWithValue = false;
+
+    for (auto const& [nodeIdHex, props] : snap) {
+        auto const& obj = props.getObject();
+        auto const it = obj.find("value");
+
+        if (it != obj.end() && it->second.isNumber() && (js::Number) it->second == 440.0) {
+            foundConstWithValue = true;
+        }
+    }
+
+    assert(foundConstWithValue);
+}
+
+TEST_CASE(rerender_identical_graph_does_not_recreate_nodes) {
+    auto runtime = std::make_shared<Runtime<double>>(44100.0, 512);
+    Renderer<double> renderer(runtime);
+
+    SymbolicAudioGraph graph1;
+    graph1.graphs.push_back(makeConstNode(440.0));
+    renderer.renderGraph(graph1, 20.0, 20.0);
+
+    auto const snapAfterFirst = runtime->snapshot();
+
+    SymbolicAudioGraph graph2;
+    graph2.graphs.push_back(makeConstNode(440.0));
+    renderer.renderGraph(graph2, 20.0, 20.0);
+
+    auto const snapAfterSecond = runtime->snapshot();
+
+    // Same set of node ids mounted before and after: no new nodes were created.
+    assert(snapAfterFirst.size() == snapAfterSecond.size());
+
+    for (auto const& [nodeIdHex, props] : snapAfterFirst) {
+        assert(snapAfterSecond.count(nodeIdHex) > 0);
+    }
+}
+
+TEST_CASE(rerender_with_changed_prop_updates_value) {
+    auto runtime = std::make_shared<Runtime<double>>(44100.0, 512);
+    Renderer<double> renderer(runtime);
+
+    SymbolicGraphNode node;
+    node.type = "const";
+    node.props = {{"value", js::Value(static_cast<js::Number>(440.0))}, {"key", js::Value(std::string("myConst"))}};
+
+    SymbolicAudioGraph graph1;
+    graph1.graphs.push_back(node);
+    renderer.renderGraph(graph1, 20.0, 20.0);
+
+    node.props["value"] = js::Value(static_cast<js::Number>(880.0));
+
+    SymbolicAudioGraph graph2;
+    graph2.graphs.push_back(node);
+    renderer.renderGraph(graph2, 20.0, 20.0);
+
+    auto const snap = runtime->snapshot();
+
+    bool foundUpdatedValue = false;
+
+    for (auto const& [nodeIdHex, props] : snap) {
+        auto const& obj = props.getObject();
+        auto const it = obj.find("value");
+
+        if (it != obj.end() && it->second.isNumber() && (js::Number) it->second == 880.0) {
+            foundUpdatedValue = true;
+        }
+    }
+
+    assert(foundUpdatedValue);
+
+    // Exactly two mounted nodes still: the const node (same hash-identity via
+    // the "key" prop) and its root wrapper -- no new node was created for the
+    // prop change.
+    assert(snap.size() == 2);
+}
+
+TEST_CASE(shared_subtree_mounted_once_appended_twice) {
+    auto runtime = std::make_shared<Runtime<double>>(44100.0, 512);
+    Renderer<double> renderer(runtime);
+
+    SymbolicGraphNode shared;
+    shared.type = "const";
+    shared.props = {{"value", js::Value(static_cast<js::Number>(1.0))}, {"key", js::Value(std::string("shared"))}};
+
+    SymbolicGraphNode sum;
+    sum.type = "add";
+    sum.children.push_back(shared);
+    sum.children.push_back(shared);
+
+    SymbolicAudioGraph graph;
+    graph.graphs.push_back(sum);
+
+    renderer.renderGraph(graph, 20.0, 20.0);
+
+    auto const snap = runtime->snapshot();
+
+    // Mounted nodes: shared const, add, root. The shared const is mounted once
+    // despite being referenced twice as a child of "add".
+    assert(snap.size() == 3);
+}
+
+TEST_CASE(multiple_top_level_graphs_get_distinct_roots) {
+    auto runtime = std::make_shared<Runtime<double>>(44100.0, 512);
+    Renderer<double> renderer(runtime);
+
+    SymbolicAudioGraph graph;
+    graph.graphs.push_back(makeConstNode(1.0));
+    graph.graphs.push_back(makeConstNode(2.0));
+
+    renderer.renderGraph(graph, 20.0, 20.0);
+
+    auto const snap = runtime->snapshot();
+
+    // Two const nodes (different "value" props with no shared "key", so
+    // different hashes) plus two distinct root wrappers (different "channel"
+    // props).
+    assert(snap.size() == 4);
+
+    int rootCount = 0;
+
+    for (auto const& [nodeIdHex, props] : snap) {
+        auto const& obj = props.getObject();
+
+        if (obj.count("fadeInMs") > 0) {
+            rootCount++;
+        }
+    }
+
+    assert(rootCount == 2);
 }
 
 } // namespace
