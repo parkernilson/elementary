@@ -60,6 +60,36 @@ namespace js
         Value (Value const& valueToCopy) : var(valueToCopy.var) {}
         Value (Value && valueToMove) noexcept : var(std::move(valueToMove.var)) {}
 
+        // TODO: This may be good to add.... or I can just use std types in the SymbolicAudioGraph and convert to js
+        // only at the point where we translate them to js instructions
+        //==============================================================================
+        // Equality
+        //
+        // Undefined and Null carry no state, so any two instances of the same one are
+        // equal. Function has no meaningful equality (std::function has no operator==),
+        // so two Function values are never considered equal to each other.
+        bool operator== (Value const& other) const
+        {
+            if (var.index() != other.var.index()) return false;
+
+            return std::visit([&other](auto const& lhs) -> bool {
+                using T = std::decay_t<decltype(lhs)>;
+
+                if constexpr (std::is_same_v<T, Function>) {
+                    return false;
+                } else if constexpr (std::is_same_v<T, Undefined> || std::is_same_v<T, Null>) {
+                    return true;
+                } else {
+                    return lhs == std::get<T>(other.var);
+                }
+            }, var);
+        }
+
+        bool operator!= (Value const& other) const
+        {
+            return !(*this == other);
+        }
+
         //==============================================================================
         // Assignment
         Value& operator= (Value const& valueToCopy)
