@@ -8,6 +8,28 @@ namespace elem
 {
 namespace js
 {
+    /**
+     * Two values are shallow equal if for every key in v1, the corresponding value is equal to the value of the
+     * same key in v2 and vice versa. This does not recurse into nested Values. I.e. Array 1 and Array 2 are
+     * shallow equal if every Value is equal, but if they have nested Arrays or Objects which are not referentially
+     * equivalent, then they are not shallow equal.
+     * @return true if the values are shallow equal
+     * TODO: Make this comment better
+     */
+    static bool shallowEqual(const Value& v1, const Value& v2) {
+        if (v1 == v2) return true;
+        if (v1.isObject() && v2.isObject()) {
+            auto const& o2 = v2.getObject();
+
+            return std::all_of(v1.getObject().begin(), v1.getObject().end(), [&o2](const auto& entry) {
+                const auto& [key, value] = entry;
+                const auto v = o2.find(key);
+                return v != o2.end() && v->second == value;
+            });
+        }
+        // TODO: Implement array equality
+        return false;
+    }
 
     // Deserialize a JSON string into a Value
     //

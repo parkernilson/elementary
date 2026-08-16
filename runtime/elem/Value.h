@@ -60,6 +60,8 @@ namespace js
         Value (Value const& valueToCopy) : var(valueToCopy.var) {}
         Value (Value && valueToMove) noexcept : var(std::move(valueToMove.var)) {}
 
+        // TODO: Does this equality operator work as I expect it to?
+        // It should compare Array and Object referentially NOT shallow. For that we should use shallowEqual
         // TODO: This may be good to add.... or I can just use std types in the SymbolicAudioGraph and convert to js
         // only at the point where we translate them to js instructions
         //==============================================================================

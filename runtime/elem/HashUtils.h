@@ -27,48 +27,36 @@ namespace elem {
            return (seed ^ n) * 0x01000193;
        }
 
-       static NodeId hashString(NodeId seed, std::string const& s) {
+       static NodeId hashString(const NodeId seed, std::string const& s) {
            NodeId r = seed;
 
            for (char c : s) {
-               r = mixNumber(r, static_cast<NodeId>(static_cast<char>(c)));
+               r = mixNumber(r, c);
            }
 
            return r;
        }
 
        static NodeId hashProps(NodeId seed, js::Object const& props) {
-           auto const it = props.find("key");
-
-           if (it != props.end() && it->second.isString()) {
-               return hashString(seed, (js::String) it->second);
+           if (auto const it = props.find("key"); it != props.end() && it->second.isString()) {
+               return hashString(seed, it->second);
            }
 
            return hashString(seed, js::serialize(js::Value(props)));
        }
 
-       static int finalizeHash(NodeId n) {
-           return static_cast<int>(n & 0x7fffffffu);
+       static NodeId finalizeHash(const NodeId n) {
+           return n & 0x7fffffff;
        }
 
        static NodeId hashNode(std::string const& kind, js::Object const& props, std::vector<NodeId> const& children) {
-           const NodeId r = hashString(kFnvOffsetBasis, kind);
-           const NodeId r2 = hashProps(r, props);
-           if (const auto& childHashes = children; !childHashes.empty()) {
-               // TODO: Does this do what I think it does?
-               return finalizeHash(std::accumulate(childHashes.begin(), childHashes.end(), r2, mixNumber));
+           NodeId r = hashString(kFnvOffsetBasis, kind);
+           r = hashProps(r, props);
+           for (const auto child : children) {
+               r = mixNumber(r, child);
            }
-           return finalizeHash(r2);
-       }
-
-       // Full deep equality via serialization, rather than the JS implementation's
-       // one-level shallowEqual.
-       //
-       // TODO: verify this deep-equality semantics matches the JS implementation's
-       // shallowEqual closely enough in practice (e.g. for array/sequence props).
-       // See docs/superpowers/specs/2026-08-13-native-renderer-reconciliation-design.md
-       static bool valuesEqual(js::Value const& a, js::Value const& b) {
-           return js::serialize(a) == js::serialize(b);
+           // TODO: Why do we use signed it but ensure it's always positive with finalHash?
+           return finalizeHash(r);
        }
    }
 }
