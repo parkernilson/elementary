@@ -576,4 +576,5 @@ namespace elem
         return rseq;
     }
 
+    using FloatRuntime = Runtime<float>;
 } // namespace elem
