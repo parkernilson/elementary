@@ -38,18 +38,19 @@ namespace elem {
         }
     };
 
+    struct RendererOptions {
+        int32_t fadeInMs = 20;
+        int32_t fadeOutMs = 20;
+    };
+
     template <typename FloatType>
     class Renderer {
     public:
-        struct Options {
-            int32_t fadeInMs = 20;
-            int32_t fadeOutMs = 20;
-        };
 
         explicit Renderer(std::shared_ptr<Runtime<FloatType>> runtime);
 
         // TODO: return statistics for benchmarking
-        void renderGraph(std::vector<SymbolicGraphNode> graphs, Options options);
+        void renderGraph(std::vector<SymbolicGraphNode> graphs, RendererOptions options);
     private:
         static js::Array makeCreateNodeInstruction(std::string type, int hash);
         static js::Array makeAppendChildInstruction(int parentHash, int childHash, int childOutputChannel);
@@ -97,7 +98,7 @@ namespace elem {
     }
 
     template <typename FloatType>
-    void Renderer<FloatType>::renderGraph(std::vector<SymbolicGraphNode> graphs, const Options options) {
+    void Renderer<FloatType>::renderGraph(std::vector<SymbolicGraphNode> graphs, const RendererOptions options) {
         std::unordered_set<NodeId> visited;
         InstructionBatch instructions;
 
