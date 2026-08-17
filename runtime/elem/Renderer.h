@@ -177,6 +177,4 @@ namespace elem {
     js::Array Renderer<FloatType>::makeCommitUpdatesInstruction() {
         return {JsInstructionType::COMMIT_UPDATES};
     }
-
-    using FloatRenderer = Renderer<float>;
 }
