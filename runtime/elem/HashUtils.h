@@ -49,7 +49,7 @@ namespace elem {
            return n & 0x7fffffff;
        }
 
-       static NodeId hashNode(std::string const& kind, js::Object const& props, std::vector<NodeId> const& children) {
+       static NodeId hashNode(std::string const& kind, const js::Object& props, const std::vector<NodeId>& children) {
            NodeId r = hashString(kFnvOffsetBasis, kind);
            r = hashProps(r, props);
            for (const auto child : children) {

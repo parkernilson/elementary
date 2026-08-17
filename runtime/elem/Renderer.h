@@ -49,7 +49,7 @@ namespace elem {
         explicit Renderer(std::shared_ptr<Runtime<FloatType>> runtime);
 
         // TODO: return statistics for benchmarking
-        void renderGraph(const SymbolicAudioGraph& graph, RenderOptions options);
+        void renderGraph(std::vector<SymbolicGraphNode> graphs, RenderOptions options);
     private:
         static js::Array makeCreateNodeInstruction(std::string type, int hash);
         static js::Array makeAppendChildInstruction(int parentHash, int childHash, int childOutputChannel);
@@ -57,10 +57,10 @@ namespace elem {
         static js::Array makeActivateRootsInstruction(std::vector<int> roots);
         static js::Array makeCommitUpdatesInstruction();
 
-        void visit(const SymbolicAudioGraph& graph, InstructionBatch& batch, const SymbolicGraphNode& node);
+        void visit(const SymbolicGraphNode& node, InstructionBatch& batch);
 
         std::shared_ptr<Runtime<FloatType>> runtime;
-        std::unordered_map<NodeId, SymbolicGraphNode> nodeMap;
+        std::unordered_map<NodeId, SymbolicGraphNodeShallow> nodeMap;
     };
 
     template <typename FloatType>
@@ -69,7 +69,7 @@ namespace elem {
     // TODO: This could probably be named something else because the syntax has different semantics in c++ than
     // in rescript.
     template <typename FloatType>
-    void Renderer<FloatType>::visit(const SymbolicAudioGraph& graph, InstructionBatch& batch, const SymbolicGraphNode& node) {
+    void Renderer<FloatType>::visit(const SymbolicGraphNode& node, InstructionBatch& batch) {
         if (const auto& existing = nodeMap.find(node.hash); existing != nodeMap.end()) {
             // updateNodeProps (compare to existing node in nodeMap)
             for (const auto& [key, value] : node.props) {
@@ -82,38 +82,29 @@ namespace elem {
             }
         } else {
             batch.createNode.push_back(makeCreateNodeInstruction(node.kind, node.hash));
-            // TODO: How is node captured? Make it capture by reference because we are immediately instantiating
-            // the view
-            // TODO: Do this with a loop instead of a view (???)
             batch.setProperty.append_range(
-                node.props | std::views::transform([node](const std::pair<std::string, js::Value>& prop) {
+                node.props | std::views::transform([&node](const std::pair<std::string, js::Value>& prop) {
                     const auto& [key, value] = prop;
                     return makeSetPropertyInstruction(node.hash, key, value);
-                }) | std::ranges::to<js::Array>()
+                })
             );
-            // TODO: DO this with a loop instead of a view (???)
             batch.appendChild.append_range(
                 node.children
-                    | std::views::transform([node, graph](const NodeId child){ return makeAppendChildInstruction(node.hash, child, graph.nodes.at(child).outputChannel); })
-                    | std::ranges::to<js::Array>()
+                    | std::views::transform([&node](const NodeId child){ return makeAppendChildInstruction(node.hash, child, node.outputChannel); })
             );
         }
-        // TODO: Does this make a copy?
-        // I think that because we store children as their hashes, we don't need to worry about making a
-        // shallow copy. Does the compiler copy this the way we want it to?
-        // TODO: a potential optimization would be to make this point to the node in the const ref graph that they passed us
-        nodeMap[node.hash] = node;
+        nodeMap[node.hash] = static_cast<SymbolicGraphNodeShallow>(node);
     }
 
     template <typename FloatType>
-    void Renderer<FloatType>::renderGraph(const SymbolicAudioGraph& graph, const RenderOptions options) {
+    void Renderer<FloatType>::renderGraph(std::vector<SymbolicGraphNode> graphs, const RenderOptions options) {
         std::unordered_set<NodeId> visited;
         InstructionBatch instructions;
 
         // Wrap the roots of the graph in root-type nodes
         std::vector<SymbolicGraphNode> roots;
-        roots.reserve(graph.roots.size());
-        for (int i = 0; i < graph.roots.size(); ++i) {
+        roots.reserve(graphs.size());
+        for (int i = 0; i < graphs.size(); ++i) {
             roots.push_back(
                 SymbolicGraph::createNode(
                     "root",
@@ -122,47 +113,30 @@ namespace elem {
                         {"fadeInMs", static_cast<js::Number>(options.fadeInMs)},
                         {"fadeOutMs", static_cast<js::Number>(options.fadeOutMs)},
                     },
-                    {graph.roots[i]}
+                    {std::move(graphs[i])}
                 )
             );
         }
 
-        std::vector<NodeId> stack;
+        std::vector<const SymbolicGraphNode*> stack;
         for (const auto& root : roots) {
-            // Since the root nodes are not in the symbolic graph's nodes, we must visit them directly
-            // However, this diverges from js core because it visits the nodes in a pre-visit fashion where the entire
-            // DFS for each root is computed sequentially, however in this case the two roots are visited directly,
-            // then the DFS for the first root then the DFS for the second one.
-            // I don't think this truly matters, but I should verify
-            // TODO: Verify this
-            visit(graph, instructions, root);
-            for (const auto& child : root.children) {
-                stack.push_back(child);
-            }
+            stack.push_back(&root);
         }
 
         while (!stack.empty()) {
-            const NodeId hash = stack.back();
+            const auto node = stack.back();
             stack.pop_back();
 
-            if (visited.contains(hash)) { continue; }
-            visited.insert(hash);
+            if (visited.contains(node->hash)) { continue; }
+            visited.insert(node->hash);
 
-            try {
-                const SymbolicGraphNode& node = graph.nodes.at(hash);
+            visit(*node, instructions);
 
-                visit(graph, instructions, node);
-
-                for (const auto& child : node.children) {
-                    const auto& childNode = graph.nodes.at(child);
-                    stack.push_back(childNode.hash);
-                }
-            } catch (const std::out_of_range&) {
-                // This would only happen if the caller gave an invalid audio graph which has child hashes
-                // that don't exist
-                // TODO: Maybe we should add methods to the SymbolicAudioGraph that would prevent this from
-                // happening. I.e. addChild(parentHash, SymbolicGraphNode) and getNode(hash) returning optional
+            for (const auto& child : node->children) {
+                stack.push_back(&child);
             }
+
+            stack.pop_back();
         }
 
         instructions.activateRoots.push_back(
