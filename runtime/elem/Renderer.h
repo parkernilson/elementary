@@ -26,7 +26,7 @@ namespace elem {
         std::vector<js::Array> activateRoots;
         std::vector<js::Array> commitUpdates;
 
-        std::vector<js::Array> getBatchedInstructions() const {
+        [[nodiscard]] std::vector<js::Array> getBatchedInstructions() const {
             auto batches = std::array{
                 std::ranges::ref_view(createNode),
                 std::ranges::ref_view(appendChild),
@@ -38,18 +38,18 @@ namespace elem {
         }
     };
 
-    struct RenderOptions {
-        int32_t fadeInMs = 20;
-        int32_t fadeOutMs = 20;
-    };
-
     template <typename FloatType>
     class Renderer {
     public:
+        struct Options {
+            int32_t fadeInMs = 20;
+            int32_t fadeOutMs = 20;
+        };
+
         explicit Renderer(std::shared_ptr<Runtime<FloatType>> runtime);
 
         // TODO: return statistics for benchmarking
-        void renderGraph(std::vector<SymbolicGraphNode> graphs, RenderOptions options);
+        void renderGraph(std::vector<SymbolicGraphNode> graphs, Options options);
     private:
         static js::Array makeCreateNodeInstruction(std::string type, int hash);
         static js::Array makeAppendChildInstruction(int parentHash, int childHash, int childOutputChannel);
@@ -97,7 +97,7 @@ namespace elem {
     }
 
     template <typename FloatType>
-    void Renderer<FloatType>::renderGraph(std::vector<SymbolicGraphNode> graphs, const RenderOptions options) {
+    void Renderer<FloatType>::renderGraph(std::vector<SymbolicGraphNode> graphs, const Options options) {
         std::unordered_set<NodeId> visited;
         InstructionBatch instructions;
 
