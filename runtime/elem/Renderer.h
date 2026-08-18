@@ -118,7 +118,8 @@ namespace elem {
         std::vector<SymbolicGraphNode> roots;
         roots.reserve(graphs.size());
         for (int i = 0; i < graphs.size(); ++i) {
-            std::vector children {std::move(graphs[i])};
+            std::vector<SymbolicGraphNode> children;
+            children.push_back(std::move(graphs[i]));
             roots.push_back(
                 SymbolicGraph::createNode(
                     "root",
