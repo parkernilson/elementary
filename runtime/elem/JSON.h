@@ -27,7 +27,15 @@ namespace js
                 return v != o2.end() && v->second == value;
             });
         }
-        // TODO: Implement array equality
+        if (v1.isArray() && v2.isArray()) {
+            auto const& a1 = v1.getArray();
+            auto const& a2 = v2.getArray();
+
+            if (a1.size() != a2.size()) return false;
+
+            return std::equal(a1.begin(), a1.end(), a2.begin());
+        }
+
         return false;
     }
 

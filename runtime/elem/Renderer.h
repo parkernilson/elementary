@@ -2,7 +2,6 @@
 #include <algorithm>
 #include <unordered_set>
 
-#include "HashUtils.h"
 #include "Runtime.h"
 #include "SymbolicGraph.h"
 
@@ -67,20 +66,20 @@ namespace elem {
         // TODO: return statistics for benchmarking
         void renderGraph(std::vector<SymbolicGraphNode> graphs, RenderOptions options);
     private:
-        static js::Array makeCreateNodeInstruction(std::string kind, int hash);
-        static js::Array makeAppendChildInstruction(int parentHash, int childHash, int childOutputChannel);
-        static js::Array makeSetPropertyInstruction(int hash, std::string key, js::Value value);
-        static js::Array makeActivateRootsInstruction(std::vector<int> roots);
+        static js::Array makeCreateNodeInstruction(std::string kind, NodeId hash);
+        static js::Array makeAppendChildInstruction(NodeId parentHash, NodeId childHash, int childOutputChannel);
+        static js::Array makeSetPropertyInstruction(NodeId hash, std::string key, js::Value value);
+        static js::Array makeActivateRootsInstruction(std::vector<NodeId> roots);
         static js::Array makeCommitUpdatesInstruction();
 
         void visit(const SymbolicGraphNode& node, InstructionBatch& batch);
 
-        std::shared_ptr<Runtime<FloatType>> runtime;
+        std::shared_ptr<Runtime<FloatType>> mRuntime;
         std::unordered_map<NodeId, SymbolicGraphNodeShallow> nodeMap;
     };
 
     template <typename FloatType>
-    Renderer<FloatType>::Renderer(std::shared_ptr<Runtime<FloatType>> runtime) : runtime{std::move(runtime)} {}
+    Renderer<FloatType>::Renderer(std::shared_ptr<Runtime<FloatType>> runtime) : mRuntime{std::move(runtime)} {}
 
     // TODO: This could probably be named something else because the syntax has different semantics in c++ than
     // in rescript.

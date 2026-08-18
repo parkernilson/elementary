@@ -15,6 +15,7 @@ namespace elem {
         NodeId hash;
         std::string kind;
         js::Object props;
+        // TODO: Is int appropriate or should I use a different size of int
         int outputChannel;
     };
 
