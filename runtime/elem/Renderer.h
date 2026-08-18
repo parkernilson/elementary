@@ -91,7 +91,8 @@ namespace elem {
                 // TODO: Is there a better way to check equality without adding the thing I did in the js header?
                 // I bet we could store non-js types on the SymbolicAudioGraph and then only convert to json once
                 // we are creating the instructions
-                if (!existing->second.props.contains(key) || !js::shallowEqual(existing->second.props, value)) {
+                if (const auto& found = existing->second.props.find(key);
+                    found == existing->second.props.end() || !js::shallowEqual(existing->second.props, value)) {
                     batch.setProperty.push_back(makeSetPropertyInstruction(node.hash, key, value));
                 }
             }
