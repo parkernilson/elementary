@@ -1,4 +1,5 @@
 #pragma once
+
 #include <algorithm>
 #include <unordered_set>
 
@@ -33,19 +34,19 @@ namespace elem {
                 + activateRoots.size()
                 + commitUpdates.size()
             );
-            for (auto& v : createNode) {
+            for (auto &v: createNode) {
                 instructions.push_back(std::move(v));
             }
-            for (auto& v : appendChild) {
+            for (auto &v: appendChild) {
                 instructions.push_back(std::move(v));
             }
-            for (auto& v : setProperty) {
+            for (auto &v: setProperty) {
                 instructions.push_back(std::move(v));
             }
-            for (auto& v : activateRoots) {
+            for (auto &v: activateRoots) {
                 instructions.push_back(std::move(v));
             }
-            for (auto& v : commitUpdates) {
+            for (auto &v: commitUpdates) {
                 instructions.push_back(std::move(v));
             }
             return std::move(instructions);
@@ -57,52 +58,58 @@ namespace elem {
         int32_t fadeOutMs = 20;
     };
 
-    template <typename FloatType>
+    template<typename FloatType>
     class Renderer {
     public:
-
-        explicit Renderer(std::shared_ptr<Runtime<FloatType>> runtime);
+        explicit Renderer(std::shared_ptr<Runtime<FloatType> > runtime);
 
         // TODO: return statistics for benchmarking
         void renderGraph(std::vector<SymbolicGraphNode> graphs, RenderOptions options);
+
     private:
         static js::Array makeCreateNodeInstruction(std::string kind, NodeId hash);
-        static js::Array makeAppendChildInstruction(NodeId parentHash, NodeId childHash, OutputChannel childOutputChannel);
+
+        static js::Array makeAppendChildInstruction(NodeId parentHash, NodeId childHash,
+                                                    OutputChannel childOutputChannel);
+
         static js::Array makeSetPropertyInstruction(NodeId hash, std::string key, js::Value value);
+
         static js::Array makeActivateRootsInstruction(std::vector<NodeId> roots);
+
         static js::Array makeCommitUpdatesInstruction();
 
-        void visit(const SymbolicGraphNode& node, InstructionBatch& batch);
+        void visit(const SymbolicGraphNode &node, InstructionBatch &batch);
 
-        std::shared_ptr<Runtime<FloatType>> mRuntime;
+        std::shared_ptr<Runtime<FloatType> > mRuntime;
         std::unordered_map<NodeId, SymbolicGraphNodeShallow> nodeMap;
     };
 
-    template <typename FloatType>
-    Renderer<FloatType>::Renderer(std::shared_ptr<Runtime<FloatType>> runtime) : mRuntime{std::move(runtime)} {}
+    template<typename FloatType>
+    Renderer<FloatType>::Renderer(std::shared_ptr<Runtime<FloatType> > runtime) : mRuntime{std::move(runtime)} {
+    }
 
-    template <typename FloatType>
-    void Renderer<FloatType>::visit(const SymbolicGraphNode& node, InstructionBatch& batch) {
-        if (const auto& existingNode = nodeMap.find(node.hash); existingNode != nodeMap.end()) {
-            for (const auto& [key, newValue] : node.props) {
-                if (const auto& oldProp = existingNode->second.props.find(key);
+    template<typename FloatType>
+    void Renderer<FloatType>::visit(const SymbolicGraphNode &node, InstructionBatch &batch) {
+        if (const auto &existingNode = nodeMap.find(node.hash); existingNode != nodeMap.end()) {
+            for (const auto &[key, newValue]: node.props) {
+                if (const auto &oldProp = existingNode->second.props.find(key);
                     oldProp == existingNode->second.props.end() || oldProp->second != newValue) {
                     batch.setProperty.emplace_back(makeSetPropertyInstruction(node.hash, key, newValue));
                 }
             }
         } else {
             batch.createNode.emplace_back(makeCreateNodeInstruction(node.kind, node.hash));
-            for (const auto& [key, value] : node.props) {
+            for (const auto &[key, value]: node.props) {
                 batch.setProperty.emplace_back(makeSetPropertyInstruction(node.hash, key, value));
             }
-            for (const auto& child : node.children) {
+            for (const auto &child: node.children) {
                 batch.appendChild.emplace_back(makeAppendChildInstruction(node.hash, child.hash, node.outputChannel));
             }
         }
         nodeMap[node.hash] = static_cast<SymbolicGraphNodeShallow>(node);
     }
 
-    template <typename FloatType>
+    template<typename FloatType>
     void Renderer<FloatType>::renderGraph(std::vector<SymbolicGraphNode> graphs, const RenderOptions options) {
         std::unordered_set<NodeId> visited;
         InstructionBatch instructions;
@@ -124,8 +131,8 @@ namespace elem {
             );
         }
 
-        std::vector<const SymbolicGraphNode*> stack;
-        for (const auto& root : roots) {
+        std::vector<const SymbolicGraphNode *> stack;
+        for (const auto &root: roots) {
             stack.push_back(&root);
         }
 
@@ -133,13 +140,13 @@ namespace elem {
             const auto node = stack.back();
             stack.pop_back();
 
-            if (const auto& found = visited.find(node->hash);
+            if (const auto &found = visited.find(node->hash);
                 found != visited.end()) { continue; }
             visited.insert(node->hash);
 
             visit(*node, instructions);
 
-            for (const auto& child : node->children) {
+            for (const auto &child: node->children) {
                 stack.push_back(&child);
             }
 
@@ -148,7 +155,7 @@ namespace elem {
 
         std::vector<NodeId> rootHashes;
         rootHashes.reserve(roots.size());
-        for (const auto& root : roots) {
+        for (const auto &root: roots) {
             rootHashes.push_back(root.hash);
         }
 
@@ -161,30 +168,35 @@ namespace elem {
         return mRuntime->applyInstructions(instructions.takeBatchedInstructions());
     }
 
-    template <typename FloatType>
+    template<typename FloatType>
     js::Array Renderer<FloatType>::makeCreateNodeInstruction(std::string kind, const NodeId hash) {
         return {JsInstructionType::CREATE_NODE, static_cast<js::Number>(hash), js::Value(std::move(kind))};
     }
 
-    template <typename FloatType>
-    js::Array Renderer<FloatType>::makeAppendChildInstruction(const NodeId parentHash, const NodeId childHash, const OutputChannel childOutputChannel) {
-        return {JsInstructionType::APPEND_CHILD, static_cast<js::Number>(parentHash),
-            static_cast<js::Number>(childHash), static_cast<js::Number>(childOutputChannel)};
+    template<typename FloatType>
+    js::Array Renderer<FloatType>::makeAppendChildInstruction(const NodeId parentHash, const NodeId childHash,
+                                                              const OutputChannel childOutputChannel) {
+        return {
+            JsInstructionType::APPEND_CHILD, static_cast<js::Number>(parentHash),
+            static_cast<js::Number>(childHash), static_cast<js::Number>(childOutputChannel)
+        };
     }
 
-    template <typename FloatType>
+    template<typename FloatType>
     js::Array Renderer<FloatType>::makeSetPropertyInstruction(const NodeId hash, std::string key, js::Value value) {
-        return {JsInstructionType::SET_PROPERTY, static_cast<js::Number>(hash),
-            js::Value(std::move(key)), std::move(value)};
+        return {
+            JsInstructionType::SET_PROPERTY, static_cast<js::Number>(hash),
+            js::Value(std::move(key)), std::move(value)
+        };
     }
 
-    template <typename FloatType>
+    template<typename FloatType>
     js::Array Renderer<FloatType>::makeActivateRootsInstruction(std::vector<NodeId> roots) {
         // TODO: Don't activate roots if they are already active (see js core renderer)
         return {JsInstructionType::ACTIVATE_ROOTS, js::Array(roots.begin(), roots.end())};
     }
 
-    template <typename FloatType>
+    template<typename FloatType>
     js::Array Renderer<FloatType>::makeCommitUpdatesInstruction() {
         return {JsInstructionType::COMMIT_UPDATES};
     }
