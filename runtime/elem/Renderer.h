@@ -1,6 +1,5 @@
 #pragma once
 #include <algorithm>
-#include <ranges>
 #include <unordered_set>
 
 #include "HashUtils.h"
@@ -27,14 +26,29 @@ namespace elem {
         std::vector<js::Array> commitUpdates;
 
         [[nodiscard]] std::vector<js::Array> getBatchedInstructions() const {
-            auto batches = std::array{
-                std::ranges::ref_view(createNode),
-                std::ranges::ref_view(appendChild),
-                std::ranges::ref_view(setProperty),
-                std::ranges::ref_view(activateRoots),
-                std::ranges::ref_view(commitUpdates)
-            };
-            return batches | std::views::join | std::ranges::to<std::vector<js::Array>>();
+            std::vector<js::Array> instructions;
+            instructions.reserve(
+                createNode.size()
+                + appendChild.size()
+                + setProperty.size()
+                + activateRoots.size()
+                + commitUpdates.size()
+            );
+            for (const auto& v : createNode) {
+                instructions.push_back(v);
+            }
+            for (const auto& v : appendChild) {
+                instructions.push_back(v);
+            }
+            for (const auto& v : setProperty) {
+                instructions.push_back(v);
+            }
+            for (const auto& v : activateRoots) {
+                instructions.push_back(v);
+            }
+            for (const auto& v : commitUpdates) {
+                instructions.push_back(v);
+            }
         }
     };
 
@@ -83,16 +97,12 @@ namespace elem {
             }
         } else {
             batch.createNode.push_back(makeCreateNodeInstruction(node.kind, node.hash));
-            batch.setProperty.append_range(
-                node.props | std::views::transform([&node](const std::pair<std::string, js::Value>& prop) {
-                    const auto& [key, value] = prop;
-                    return makeSetPropertyInstruction(node.hash, key, value);
-                })
-            );
-            batch.appendChild.append_range(
-                node.children
-                    | std::views::transform([&node](const NodeId child){ return makeAppendChildInstruction(node.hash, child, node.outputChannel); })
-            );
+            for (const auto& [key, value] : node.props) {
+                batch.setProperty.push_back(makeSetPropertyInstruction(node.hash, key, value));
+            }
+            for (const auto& child : node.children) {
+                batch.appendChild.push_back(makeAppendChildInstruction(node.hash, child.hash, node.outputChannel));
+            }
         }
         nodeMap[node.hash] = static_cast<SymbolicGraphNodeShallow>(node);
     }
@@ -140,9 +150,15 @@ namespace elem {
             stack.pop_back();
         }
 
+        std::vector<NodeId> rootHashes;
+        rootHashes.reserve(roots.size());
+        for (const auto& root : roots) {
+            rootHashes.push_back(root.hash);
+        }
+
         instructions.activateRoots.push_back(
             makeActivateRootsInstruction(
-                roots | std::views::transform([](auto root){return root.hash;})
+                std::move(rootHashes)
             )
         );
         instructions.commitUpdates = {makeCommitUpdatesInstruction()};
