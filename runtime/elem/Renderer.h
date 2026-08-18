@@ -88,9 +88,6 @@ namespace elem {
         if (const auto& existing = nodeMap.find(node.hash); existing != nodeMap.end()) {
             // updateNodeProps (compare to existing node in nodeMap)
             for (const auto& [key, value] : node.props) {
-                // TODO: Is there a better way to check equality without adding the thing I did in the js header?
-                // I bet we could store non-js types on the SymbolicAudioGraph and then only convert to json once
-                // we are creating the instructions
                 if (const auto& found = existing->second.props.find(key);
                     found == existing->second.props.end() || !js::shallowEqual(existing->second.props, value)) {
                     batch.setProperty.emplace_back(makeSetPropertyInstruction(node.hash, key, value));
@@ -139,6 +136,7 @@ namespace elem {
             const auto node = stack.back();
             stack.pop_back();
 
+            // TODO: Is this how you check if a set has something?
             if (const auto& found = visited.find(node->hash);
                 found != visited.end()) { continue; }
             visited.insert(node->hash);
@@ -164,7 +162,7 @@ namespace elem {
         );
         instructions.commitUpdates = {makeCommitUpdatesInstruction()};
 
-        return runtime->applyInstructions(instructions.takeBatchedInstructions());
+        return mRuntime->applyInstructions(instructions.takeBatchedInstructions());
         // TODO: return status? statistics?
     }
 

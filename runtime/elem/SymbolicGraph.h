@@ -31,7 +31,6 @@ namespace elem {
     };
 
     namespace SymbolicGraph {
-        // TODO: Make sure that all usages are efficient (correct move semantics)
         static SymbolicGraphNode createNode(std::string kind, js::Object props, std::vector<SymbolicGraphNode> children) {
             std::vector<NodeId> childHashes;
             childHashes.reserve(children.size());
