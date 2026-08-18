@@ -118,6 +118,7 @@ namespace elem {
         std::vector<SymbolicGraphNode> roots;
         roots.reserve(graphs.size());
         for (int i = 0; i < graphs.size(); ++i) {
+            std::vector children {std::move(graphs[i])};
             roots.push_back(
                 SymbolicGraph::createNode(
                     "root",
@@ -126,7 +127,7 @@ namespace elem {
                         {"fadeInMs", static_cast<js::Number>(options.fadeInMs)},
                         {"fadeOutMs", static_cast<js::Number>(options.fadeOutMs)},
                     },
-                    {std::move(graphs[i])}
+                    std::move(children)
                 )
             );
         }
