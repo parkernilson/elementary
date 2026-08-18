@@ -67,7 +67,7 @@ namespace elem {
         void renderGraph(std::vector<SymbolicGraphNode> graphs, RenderOptions options);
     private:
         static js::Array makeCreateNodeInstruction(std::string kind, NodeId hash);
-        static js::Array makeAppendChildInstruction(NodeId parentHash, NodeId childHash, int childOutputChannel);
+        static js::Array makeAppendChildInstruction(NodeId parentHash, NodeId childHash, OutputChannel childOutputChannel);
         static js::Array makeSetPropertyInstruction(NodeId hash, std::string key, js::Value value);
         static js::Array makeActivateRootsInstruction(std::vector<NodeId> roots);
         static js::Array makeCommitUpdatesInstruction();
@@ -162,24 +162,24 @@ namespace elem {
     }
 
     template <typename FloatType>
-    js::Array Renderer<FloatType>::makeCreateNodeInstruction(std::string kind, int hash) {
+    js::Array Renderer<FloatType>::makeCreateNodeInstruction(std::string kind, const NodeId hash) {
         return {JsInstructionType::CREATE_NODE, static_cast<js::Number>(hash), js::Value(std::move(kind))};
     }
 
     template <typename FloatType>
-    js::Array Renderer<FloatType>::makeAppendChildInstruction(int parentHash, int childHash, int childOutputChannel) {
+    js::Array Renderer<FloatType>::makeAppendChildInstruction(const NodeId parentHash, const NodeId childHash, const OutputChannel childOutputChannel) {
         return {JsInstructionType::APPEND_CHILD, static_cast<js::Number>(parentHash),
             static_cast<js::Number>(childHash), static_cast<js::Number>(childOutputChannel)};
     }
 
     template <typename FloatType>
-    js::Array Renderer<FloatType>::makeSetPropertyInstruction(int hash, std::string key, js::Value value) {
+    js::Array Renderer<FloatType>::makeSetPropertyInstruction(const NodeId hash, std::string key, js::Value value) {
         return {JsInstructionType::SET_PROPERTY, static_cast<js::Number>(hash),
             js::Value(std::move(key)), std::move(value)};
     }
 
     template <typename FloatType>
-    js::Array Renderer<FloatType>::makeActivateRootsInstruction(std::vector<int> roots) {
+    js::Array Renderer<FloatType>::makeActivateRootsInstruction(std::vector<NodeId> roots) {
         // TODO: Don't activate roots if they are already active (see js core renderer)
         return {JsInstructionType::ACTIVATE_ROOTS, js::Array(roots.begin(), roots.end())};
     }
