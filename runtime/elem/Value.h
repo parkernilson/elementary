@@ -60,16 +60,12 @@ namespace js
         Value (Value const& valueToCopy) : var(valueToCopy.var) {}
         Value (Value && valueToMove) noexcept : var(std::move(valueToMove.var)) {}
 
-        // TODO: Does this equality operator work as I expect it to?
-        // It should compare Array and Object referentially NOT shallow. For that we should use shallowEqual
-        // TODO: This may be good to add.... or I can just use std types in the SymbolicAudioGraph and convert to js
-        // only at the point where we translate them to js instructions
-        //==============================================================================
-        // Equality
-        //
-        // Undefined and Null carry no state, so any two instances of the same one are
-        // equal. Function has no meaningful equality (std::function has no operator==),
-        // so two Function values are never considered equal to each other.
+        /**
+         * Compare two Values using the == operator of their underlying type.
+         * Comparing two values that do not have the exact same type will always return false (i.e. Array != Float32Array).
+         * Comparing Functions will always return false.
+         * Comparing Null and Undefined will only return true if both Values are of the same type.
+         */
         bool operator== (Value const& other) const
         {
             if (var.index() != other.var.index()) return false;

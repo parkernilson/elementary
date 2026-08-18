@@ -9,12 +9,16 @@ namespace elem
 namespace js
 {
     /**
-     * Two values are shallow equal if for every key in v1, the corresponding value is equal to the value of the
-     * same key in v2 and vice versa. This does not recurse into nested Values. I.e. Array 1 and Array 2 are
-     * shallow equal if every Value is equal, but if they have nested Arrays or Objects which are not referentially
-     * equivalent, then they are not shallow equal.
+     * Two Value's are shallow equal if they meet one of the following conditions:
+     * 1. They are equal by value
+     * 2. If it is an Array (Or Float32Array), then every element in the Array is equal by value
+     * 3. If it is an Object, then they share the same set of top-level keys and each one carries
+     * the same value
+     *
+     * TODO: We may not need shallowEqual, because comparing std::vector and std::map
+     *
+     * In the case of recursive structures, _only_ the top level is compared by value.
      * @return true if the values are shallow equal
-     * TODO: Make this comment better
      */
     static bool shallowEqual(const Value& v1, const Value& v2) {
         if (v1 == v2) return true;
@@ -30,6 +34,14 @@ namespace js
         if (v1.isArray() && v2.isArray()) {
             auto const& a1 = v1.getArray();
             auto const& a2 = v2.getArray();
+
+            if (a1.size() != a2.size()) return false;
+
+            return std::equal(a1.begin(), a1.end(), a2.begin());
+        }
+        if (v1.isFloat32Array() && v2.isFloat32Array()) {
+            auto const& a1 = v1.getFloat32Array();
+            auto const& a2 = v2.getFloat32Array();
 
             if (a1.size() != a2.size()) return false;
 
