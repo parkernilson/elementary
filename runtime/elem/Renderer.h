@@ -25,7 +25,7 @@ namespace elem {
         js::Array activateRoots;
         js::Array commitUpdates;
 
-        [[nodiscard]] js::Array getBatchedInstructions() const {
+        [[nodiscard]] js::Array takeBatchedInstructions() {
             js::Array instructions;
             instructions.reserve(
                 createNode.size()
@@ -34,20 +34,20 @@ namespace elem {
                 + activateRoots.size()
                 + commitUpdates.size()
             );
-            for (const auto& v : createNode) {
-                instructions.push_back(v);
+            for (auto& v : createNode) {
+                instructions.push_back(std::move(v));
             }
-            for (const auto& v : appendChild) {
-                instructions.push_back(v);
+            for (auto& v : appendChild) {
+                instructions.push_back(std::move(v));
             }
-            for (const auto& v : setProperty) {
-                instructions.push_back(v);
+            for (auto& v : setProperty) {
+                instructions.push_back(std::move(v));
             }
-            for (const auto& v : activateRoots) {
-                instructions.push_back(v);
+            for (auto& v : activateRoots) {
+                instructions.push_back(std::move(v));
             }
-            for (const auto& v : commitUpdates) {
-                instructions.push_back(v);
+            for (auto& v : commitUpdates) {
+                instructions.push_back(std::move(v));
             }
             return std::move(instructions);
         }
@@ -67,7 +67,7 @@ namespace elem {
         // TODO: return statistics for benchmarking
         void renderGraph(std::vector<SymbolicGraphNode> graphs, RenderOptions options);
     private:
-        static js::Array makeCreateNodeInstruction(std::string type, int hash);
+        static js::Array makeCreateNodeInstruction(std::string kind, int hash);
         static js::Array makeAppendChildInstruction(int parentHash, int childHash, int childOutputChannel);
         static js::Array makeSetPropertyInstruction(int hash, std::string key, js::Value value);
         static js::Array makeActivateRootsInstruction(std::vector<int> roots);
@@ -165,13 +165,13 @@ namespace elem {
         );
         instructions.commitUpdates = {makeCommitUpdatesInstruction()};
 
-        return runtime->applyInstructions(instructions.getBatchedInstructions());
+        return runtime->applyInstructions(instructions.takeBatchedInstructions());
         // TODO: return status? statistics?
     }
 
     template <typename FloatType>
-    js::Array Renderer<FloatType>::makeCreateNodeInstruction(std::string type, int hash) {
-        return {JsInstructionType::CREATE_NODE, static_cast<js::Number>(hash), js::Value(std::move(type))};
+    js::Array Renderer<FloatType>::makeCreateNodeInstruction(std::string kind, int hash) {
+        return {JsInstructionType::CREATE_NODE, static_cast<js::Number>(hash), js::Value(std::move(kind))};
     }
 
     template <typename FloatType>
