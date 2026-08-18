@@ -8,49 +8,6 @@ namespace elem
 {
 namespace js
 {
-    /**
-     * Two Value's are shallow equal if they meet one of the following conditions:
-     * 1. They are equal by value
-     * 2. If it is an Array (Or Float32Array), then every element in the Array is equal by value
-     * 3. If it is an Object, then they share the same set of top-level keys and each one carries
-     * the same value
-     *
-     * TODO: We may not need shallowEqual, because comparing std::vector and std::map
-     *
-     * In the case of recursive structures, _only_ the top level is compared by value.
-     * @return true if the values are shallow equal
-     */
-    static bool shallowEqual(const Value& v1, const Value& v2) {
-        if (v1 == v2) return true;
-        if (v1.isObject() && v2.isObject()) {
-            auto const& o2 = v2.getObject();
-
-            return std::all_of(v1.getObject().begin(), v1.getObject().end(), [&o2](const auto& entry) {
-                const auto& [key, value] = entry;
-                const auto v = o2.find(key);
-                return v != o2.end() && v->second == value;
-            });
-        }
-        if (v1.isArray() && v2.isArray()) {
-            auto const& a1 = v1.getArray();
-            auto const& a2 = v2.getArray();
-
-            if (a1.size() != a2.size()) return false;
-
-            return std::equal(a1.begin(), a1.end(), a2.begin());
-        }
-        if (v1.isFloat32Array() && v2.isFloat32Array()) {
-            auto const& a1 = v1.getFloat32Array();
-            auto const& a2 = v2.getFloat32Array();
-
-            if (a1.size() != a2.size()) return false;
-
-            return std::equal(a1.begin(), a1.end(), a2.begin());
-        }
-
-        return false;
-    }
-
     // Deserialize a JSON string into a Value
     //
     // This uses the nlohmann/json library for parsing the json string, with the

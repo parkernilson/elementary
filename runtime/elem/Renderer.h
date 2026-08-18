@@ -81,16 +81,13 @@ namespace elem {
     template <typename FloatType>
     Renderer<FloatType>::Renderer(std::shared_ptr<Runtime<FloatType>> runtime) : mRuntime{std::move(runtime)} {}
 
-    // TODO: This could probably be named something else because the syntax has different semantics in c++ than
-    // in rescript.
     template <typename FloatType>
     void Renderer<FloatType>::visit(const SymbolicGraphNode& node, InstructionBatch& batch) {
-        if (const auto& existing = nodeMap.find(node.hash); existing != nodeMap.end()) {
-            // updateNodeProps (compare to existing node in nodeMap)
-            for (const auto& [key, value] : node.props) {
-                if (const auto& found = existing->second.props.find(key);
-                    found == existing->second.props.end() || !js::shallowEqual(existing->second.props, value)) {
-                    batch.setProperty.emplace_back(makeSetPropertyInstruction(node.hash, key, value));
+        if (const auto& existingNode = nodeMap.find(node.hash); existingNode != nodeMap.end()) {
+            for (const auto& [key, newValue] : node.props) {
+                if (const auto& oldProp = existingNode->second.props.find(key);
+                    oldProp == existingNode->second.props.end() || oldProp->second != newValue) {
+                    batch.setProperty.emplace_back(makeSetPropertyInstruction(node.hash, key, newValue));
                 }
             }
         } else {
@@ -136,7 +133,6 @@ namespace elem {
             const auto node = stack.back();
             stack.pop_back();
 
-            // TODO: Is this how you check if a set has something?
             if (const auto& found = visited.find(node->hash);
                 found != visited.end()) { continue; }
             visited.insert(node->hash);
@@ -163,7 +159,6 @@ namespace elem {
         instructions.commitUpdates = {makeCommitUpdatesInstruction()};
 
         return mRuntime->applyInstructions(instructions.takeBatchedInstructions());
-        // TODO: return status? statistics?
     }
 
     template <typename FloatType>
