@@ -49,6 +49,7 @@ namespace elem {
             for (const auto& v : commitUpdates) {
                 instructions.push_back(v);
             }
+            return instructions;
         }
     };
 
@@ -139,7 +140,8 @@ namespace elem {
             const auto node = stack.back();
             stack.pop_back();
 
-            if (visited.contains(node->hash)) { continue; }
+            if (const auto& found = visited.find(node->hash);
+                found != visited.end()) { continue; }
             visited.insert(node->hash);
 
             visit(*node, instructions);
