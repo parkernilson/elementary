@@ -19,14 +19,14 @@ namespace elem {
     }
 
     struct InstructionBatch {
-        std::vector<js::Array> createNode;
-        std::vector<js::Array> appendChild;
-        std::vector<js::Array> setProperty;
-        std::vector<js::Array> activateRoots;
-        std::vector<js::Array> commitUpdates;
+        js::Array createNode;
+        js::Array appendChild;
+        js::Array setProperty;
+        js::Array activateRoots;
+        js::Array commitUpdates;
 
-        [[nodiscard]] std::vector<js::Array> getBatchedInstructions() const {
-            std::vector<js::Array> instructions;
+        [[nodiscard]] js::Array getBatchedInstructions() const {
+            js::Array instructions;
             instructions.reserve(
                 createNode.size()
                 + appendChild.size()
@@ -49,7 +49,7 @@ namespace elem {
             for (const auto& v : commitUpdates) {
                 instructions.push_back(v);
             }
-            return instructions;
+            return std::move(instructions);
         }
     };
 
@@ -94,16 +94,16 @@ namespace elem {
                 // we are creating the instructions
                 if (const auto& found = existing->second.props.find(key);
                     found == existing->second.props.end() || !js::shallowEqual(existing->second.props, value)) {
-                    batch.setProperty.push_back(makeSetPropertyInstruction(node.hash, key, value));
+                    batch.setProperty.emplace_back(makeSetPropertyInstruction(node.hash, key, value));
                 }
             }
         } else {
-            batch.createNode.push_back(makeCreateNodeInstruction(node.kind, node.hash));
+            batch.createNode.emplace_back(makeCreateNodeInstruction(node.kind, node.hash));
             for (const auto& [key, value] : node.props) {
-                batch.setProperty.push_back(makeSetPropertyInstruction(node.hash, key, value));
+                batch.setProperty.emplace_back(makeSetPropertyInstruction(node.hash, key, value));
             }
             for (const auto& child : node.children) {
-                batch.appendChild.push_back(makeAppendChildInstruction(node.hash, child.hash, node.outputChannel));
+                batch.appendChild.emplace_back(makeAppendChildInstruction(node.hash, child.hash, node.outputChannel));
             }
         }
         nodeMap[node.hash] = static_cast<SymbolicGraphNodeShallow>(node);
@@ -159,8 +159,7 @@ namespace elem {
             rootHashes.push_back(root.hash);
         }
 
-        instructions.activateRoots.push_back(
-            makeActivateRootsInstruction(
+        instructions.activateRoots.emplace_back(makeActivateRootsInstruction(
                 std::move(rootHashes)
             )
         );

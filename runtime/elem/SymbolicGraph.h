@@ -32,9 +32,11 @@ namespace elem {
     namespace SymbolicGraph {
         // TODO: Make sure that all usages are efficient (correct move semantics)
         static SymbolicGraphNode createNode(std::string kind, js::Object props, std::vector<SymbolicGraphNode> children) {
-            const auto childHashes = children
-               | std::views::transform([](const auto& child){return child.hash;})
-               | std::ranges::to<std::vector<NodeId>>();
+            std::vector<NodeId> childHashes;
+            childHashes.reserve(children.size());
+            for (const auto& child: children) {
+                childHashes.push_back(child.hash);
+            }
 
             return SymbolicGraphNode{
                 HashUtils::hashNode(kind, props, childHashes),
