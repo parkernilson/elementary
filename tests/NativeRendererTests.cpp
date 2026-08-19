@@ -21,6 +21,9 @@ namespace {
     };
 }
 
+// TODO: In all these tests we should also verify the statistics returned from the renderGraph method. We should be
+// able to determine what they should be exactly per render.
+
 TEST(NativeRendererTestMachinery, RenderGraphAppliesInstructionsToRuntime) {
     auto mockRuntime = std::make_shared<MockRuntime>();
     EXPECT_CALL(*mockRuntime, applyInstructions(::testing::_)).Times(1);

@@ -65,6 +65,16 @@ namespace elem {
         explicit Renderer(std::shared_ptr<RuntimeInterface<FloatType> > runtime);
 
         // TODO: return statistics for benchmarking
+        /*
+        Should return something like this (see js core renderer):
+
+        result (int status code returned by Runtime::applyInstructions. Since we are still in native layer we can use
+        the decoded versions),
+        nodesAdded,
+        edgesAdded,
+        propsWritten,
+        elapsedTimeMs: t1 - t0,
+         */
         void renderGraph(std::vector<SymbolicGraphNode> graphs, RenderOptions options);
 
     private:
