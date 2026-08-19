@@ -1,6 +1,7 @@
 #pragma once
 
 #include <algorithm>
+#include <chrono>
 #include <unordered_set>
 
 #include "Runtime.h"
@@ -59,23 +60,20 @@ namespace elem {
         int32_t fadeOutMs = 20;
     };
 
+    struct RenderStats {
+        int result = 0;
+        int32_t nodesAdded = 0;
+        int32_t edgesAdded = 0;
+        int32_t propsWritten = 0;
+        double elapsedTimeMs = 0.0;
+    };
+
     template<typename FloatType>
     class Renderer {
     public:
         explicit Renderer(std::shared_ptr<RuntimeInterface<FloatType> > runtime);
 
-        // TODO: return statistics for benchmarking
-        /*
-        Should return something like this (see js core renderer):
-
-        result (int status code returned by Runtime::applyInstructions. Since we are still in native layer we can use
-        the decoded versions),
-        nodesAdded,
-        edgesAdded,
-        propsWritten,
-        elapsedTimeMs: t1 - t0,
-         */
-        void renderGraph(std::vector<SymbolicGraphNode> graphs, RenderOptions options);
+        RenderStats renderGraph(std::vector<SymbolicGraphNode> graphs, RenderOptions options);
 
     private:
         static js::Array makeCreateNodeInstruction(std::string kind, NodeId hash);
@@ -121,7 +119,9 @@ namespace elem {
     }
 
     template<typename FloatType>
-    void Renderer<FloatType>::renderGraph(std::vector<SymbolicGraphNode> graphs, const RenderOptions options) {
+    RenderStats Renderer<FloatType>::renderGraph(std::vector<SymbolicGraphNode> graphs, const RenderOptions options) {
+        auto const t0 = std::chrono::steady_clock::now();
+
         std::unordered_set<NodeId> visited;
         InstructionBatch instructions;
 
@@ -174,9 +174,19 @@ namespace elem {
                 std::move(rootHashes)
             )
         );
-        instructions.commitUpdates = {makeCommitUpdatesInstruction()};
+        instructions.commitUpdates.emplace_back(makeCommitUpdatesInstruction());
 
-        mRuntime->applyInstructions(instructions.takeBatchedInstructions());
+        RenderStats stats;
+        stats.nodesAdded = static_cast<int32_t>(instructions.createNode.size());
+        stats.edgesAdded = static_cast<int32_t>(instructions.appendChild.size());
+        stats.propsWritten = static_cast<int32_t>(instructions.setProperty.size());
+
+        auto const t1 = std::chrono::steady_clock::now();
+        stats.elapsedTimeMs = std::chrono::duration<double, std::milli>(t1 - t0).count();
+
+        stats.result = mRuntime->applyInstructions(instructions.takeBatchedInstructions());
+
+        return stats;
     }
 
     template<typename FloatType>

@@ -22,6 +22,7 @@
     "kind": "root",
     "outlets": [],
     "props": {
+      "_internal:numChildren": 1.0,
       "active": true,
       "channel": 0.0,
       "fadeInMs": 20.0,

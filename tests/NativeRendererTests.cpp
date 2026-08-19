@@ -32,6 +32,32 @@ TEST(NativeRendererTestMachinery, RenderGraphAppliesInstructionsToRuntime) {
     renderer.renderGraph({}, elem::RenderOptions{});
 }
 
+TEST(NativeRendererTestMachinery, RenderGraphReturnsApplyInstructionsResult) {
+    auto mockRuntime = std::make_shared<MockRuntime>();
+    EXPECT_CALL(*mockRuntime, applyInstructions(::testing::_)).WillOnce(::testing::Return(7));
+
+    elem::Renderer<double> renderer(mockRuntime);
+    auto const stats = renderer.renderGraph({}, elem::RenderOptions{});
+
+    EXPECT_EQ(stats.result, 7);
+}
+
+TEST(NativeRendererStatsTests, ReturnsStatisticsForRenderPass) {
+    auto runtime = std::make_shared<elem::Runtime<double>>(44100.0, 512);
+    elem::Renderer<double> renderer(runtime);
+
+    std::vector<elem::SymbolicGraphNode> graph;
+    graph.push_back(elem::SymbolicGraph::createNode("const", {{"value", 42.0}}, {}));
+
+    auto const stats = renderer.renderGraph(std::move(graph), elem::RenderOptions{});
+
+    EXPECT_EQ(stats.result, 0);
+    EXPECT_EQ(stats.nodesAdded, 2);
+    EXPECT_EQ(stats.edgesAdded, 1);
+    EXPECT_EQ(stats.propsWritten, 4);
+    EXPECT_GE(stats.elapsedTimeMs, 0.0);
+}
+
 TEST(NativeRendererSnapshotTests, ConstNodeGraph) {
     auto runtime = std::make_shared<elem::Runtime<double>>(44100.0, 512);
     elem::Renderer<double> renderer(runtime);
