@@ -4,6 +4,7 @@
 #include <unordered_set>
 
 #include "Runtime.h"
+#include "RuntimeInterface.h"
 #include "SymbolicGraph.h"
 
 // TODO: We should create an elemcli-native target that uses the native renderer so that these files
@@ -61,7 +62,7 @@ namespace elem {
     template<typename FloatType>
     class Renderer {
     public:
-        explicit Renderer(std::shared_ptr<Runtime<FloatType> > runtime);
+        explicit Renderer(std::shared_ptr<RuntimeInterface<FloatType> > runtime);
 
         // TODO: return statistics for benchmarking
         void renderGraph(std::vector<SymbolicGraphNode> graphs, RenderOptions options);
@@ -80,12 +81,12 @@ namespace elem {
 
         void visit(const SymbolicGraphNode &node, InstructionBatch &batch);
 
-        std::shared_ptr<Runtime<FloatType> > mRuntime;
+        std::shared_ptr<RuntimeInterface<FloatType> > mRuntime;
         std::unordered_map<NodeId, SymbolicGraphNodeShallow> nodeMap;
     };
 
     template<typename FloatType>
-    Renderer<FloatType>::Renderer(std::shared_ptr<Runtime<FloatType> > runtime) : mRuntime{std::move(runtime)} {
+    Renderer<FloatType>::Renderer(std::shared_ptr<RuntimeInterface<FloatType> > runtime) : mRuntime{std::move(runtime)} {
     }
 
     template<typename FloatType>
@@ -167,7 +168,7 @@ namespace elem {
         );
         instructions.commitUpdates = {makeCommitUpdatesInstruction()};
 
-        return mRuntime->applyInstructions(instructions.takeBatchedInstructions());
+        mRuntime->applyInstructions(instructions.takeBatchedInstructions());
     }
 
     template<typename FloatType>

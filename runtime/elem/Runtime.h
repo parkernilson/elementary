@@ -8,6 +8,7 @@
 #include "DefaultNodeTypes.h"
 #include "GraphNode.h"
 #include "GraphRenderSequence.h"
+#include "RuntimeInterface.h"
 #include "Types.h"
 #include "Value.h"
 #include "JSON.h"
@@ -44,7 +45,7 @@ namespace elem
     // Users may also implement custom graph nodes by extending the GraphNode
     // interface and then registering with the Runtime via `registerNodeType`.
     template <typename FloatType>
-    class Runtime
+    class Runtime : public RuntimeInterface<FloatType>
     {
     public:
         //==============================================================================
@@ -52,7 +53,7 @@ namespace elem
 
         //==============================================================================
         // Apply graph rendering instructions
-        int applyInstructions(js::Array const& batch);
+        int applyInstructions(js::Array const& batch) override;
 
         // Run the internal audio processing callback
         void process(
