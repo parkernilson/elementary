@@ -308,6 +308,7 @@ namespace elem
             return ReturnCode::NodeAlreadyExists();
 
         auto node = nodeFactory[type](nodeId, sampleRate, blockSize);
+        node->setKind(type);
         nodeTable.insert({nodeId, {node, {}, {}}});
 
         return ReturnCode::Ok();
@@ -492,8 +493,29 @@ namespace elem
     {
         js::Object ret;
 
-        for (auto& [nodeId, node] : nodeTable) {
-            ret.insert({nodeIdToHex(nodeId), node->getProperties()});
+        for (auto& [nodeId, entry] : nodeTable) {
+            js::Array inlets;
+            for (auto const& inlet : entry.inlets) {
+                inlets.push_back(js::Value(js::Object {
+                    {"source", js::Value(nodeIdToHex(inlet.source))},
+                    {"outletChannel", static_cast<js::Number>(inlet.outletChannel)},
+                }));
+            }
+
+            js::Array outlets;
+            for (auto const& outlet : entry.outlets) {
+                outlets.push_back(js::Value(js::Object {
+                    {"destination", js::Value(nodeIdToHex(outlet.destination))},
+                    {"outletChannel", static_cast<js::Number>(outlet.outletChannel)},
+                }));
+            }
+
+            ret.insert({nodeIdToHex(nodeId), js::Value(js::Object {
+                {"kind", js::Value(entry.node->getKind())},
+                {"props", js::Value(entry.node->getProperties())},
+                {"inlets", js::Value(std::move(inlets))},
+                {"outlets", js::Value(std::move(outlets))},
+            })});
         }
 
         return ret;

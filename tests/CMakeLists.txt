@@ -10,5 +10,9 @@ target_compile_features(native-renderer-tests PRIVATE cxx_std_17)
 
 target_link_libraries(native-renderer-tests PRIVATE elem::runtime GTest::gtest_main GTest::gmock)
 
+target_compile_definitions(native-renderer-tests PRIVATE
+    NATIVE_RENDERER_TESTS_DIR="${CMAKE_CURRENT_SOURCE_DIR}"
+)
+
 include(GoogleTest)
 gtest_discover_tests(native-renderer-tests)

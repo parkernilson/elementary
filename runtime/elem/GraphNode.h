@@ -6,6 +6,7 @@
 
 #include <unordered_map>
 #include <functional>
+#include <string>
 
 namespace elem
 {
@@ -33,6 +34,13 @@ namespace elem
         //==============================================================================
         // Returns the NodeId associated with this node
         NodeId getId() { return nodeId; }
+
+        //==============================================================================
+        // The `kind` is the string identifying this node's type, e.g. "const" or "root",
+        // as registered with Runtime::registerNodeType. It's set by the Runtime immediately
+        // after construction and is otherwise unused by GraphNode itself.
+        std::string getKind() { return kind; }
+        void setKind(std::string k) { kind = std::move(k); }
 
         //==============================================================================
         double getSampleRate() { return sampleRate; }
@@ -89,6 +97,7 @@ namespace elem
     private:
         //==============================================================================
         NodeId nodeId;
+        std::string kind;
         std::unordered_map<std::string, js::Value> props;
 
         double sampleRate;

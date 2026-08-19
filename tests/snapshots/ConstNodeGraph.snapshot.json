@@ -1,0 +1,31 @@
+{
+  "0x31dcdf01": {
+    "inlets": [],
+    "kind": "const",
+    "outlets": [
+      {
+        "destination": "0x4395be5e",
+        "outletChannel": 0.0
+      }
+    ],
+    "props": {
+      "value": 42.0
+    }
+  },
+  "0x4395be5e": {
+    "inlets": [
+      {
+        "outletChannel": 0.0,
+        "source": "0x31dcdf01"
+      }
+    ],
+    "kind": "root",
+    "outlets": [],
+    "props": {
+      "active": true,
+      "channel": 0.0,
+      "fadeInMs": 20.0,
+      "fadeOutMs": 20.0
+    }
+  }
+}

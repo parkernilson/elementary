@@ -152,8 +152,6 @@ namespace elem {
             for (const auto &child: node->children) {
                 stack.push_back(&child);
             }
-
-            stack.pop_back();
         }
 
         std::vector<NodeId> rootHashes;
