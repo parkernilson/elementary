@@ -1,0 +1,18 @@
+---
+Checks: >
+  -*,
+  bugprone-*,
+  performance-*,
+  clang-analyzer-*,
+  readability-*,
+  modernize-*,
+  -modernize-use-trailing-return-type,
+  -modernize-use-nodiscard,
+  -readability-magic-numbers,
+  -readability-identifier-length,
+  -readability-else-after-return,
+  -bugprone-easily-swappable-parameters
+
+WarningsAsErrors: ''
+HeaderFilterRegex: '.*/runtime/elem/([A-Za-z0-9_]+\.h|builtins/.*\.h)$|.*/cli/(Realtime|Benchmark)\.h$'
+FormatStyle: none
