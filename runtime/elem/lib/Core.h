@@ -3,6 +3,8 @@
 #include "elem/SymbolicGraph.h"
 
 namespace elem::lib {
+    // TODO: Implement multi-channel nodes (unpack)
+
     using ElemNode = std::variant<std::shared_ptr<SymbolicGraphNode>, double>;
     // TODO: Should we name this SymbolicNode or Symbol or Signal or something?
     // NodeRepr is probably the right type because it follows the js core pattern

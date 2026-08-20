@@ -52,3 +52,22 @@ TEST(NativeRendererSnapshotTests, RendersBasicSineWave) {
     EXPECT_EQ(result.propsWritten, 5);
     EXPECT_EQ(result.result, elem::ReturnCode::Ok());
 }
+
+// TODO: Adding a node to the top only adds 1 node, 1 appendChild, and 1 setProperty
+
+// TODO: Changing a leaf node re-creates the whole tree
+
+// TODO: Updating a leaf node with a ref retProperty (Need to implement createRef) only sends 1 setProperty
+
+// TODO: Render a tree with Multi-Channel nodes
+
+// TODO: Changing a node in the middle of the tree redraws only the parents of that node
+
+// TODO: Adding a node to the middle of the tree redraws only the parents of the node
+
+// TODO: Custom node tests
+// TODO: Custom node is created successfully
+
+// TODO: Node with "key" prop is not re-created when prop is changed and parents are not recreated
+
+// TODO:
