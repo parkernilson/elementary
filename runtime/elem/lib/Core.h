@@ -41,4 +41,26 @@ namespace elem::lib {
     static NodeRepr phasor(ElemNode rate) {
         return SymbolicGraph::createNode("phasor", {}, {resolve(std::move(rate))});
     }
+
+    static NodeRepr rand(std::optional<double> seed = std::nullopt, std::optional<std::string> key = std::nullopt) {
+        js::Object props;
+        if (seed.has_value()) {
+            props.insert({"seed", std::move(*seed)});
+        }
+        if (key.has_value()) {
+            props.insert({"key", std::move(*key)});
+        }
+        return SymbolicGraph::createNode("rand", std::move(props), {});
+    }
+
+    static NodeRepr meter(std::vector<ElemNode> children, std::optional<std::string> name = std::nullopt, std::optional<std::string> key = std::nullopt) {
+        js::Object props;
+        if (name.has_value()) {
+            props.insert({"name", std::move(*name)});
+        }
+        if (key.has_value()) {
+            props.insert({"key", std::move(*key)});
+        }
+        return SymbolicGraph::createNode("meter", std::move(props), resolveXs(std::move(children)));
+    }
 }
