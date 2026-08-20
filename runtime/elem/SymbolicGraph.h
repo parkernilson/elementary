@@ -24,10 +24,10 @@ namespace elem {
      * should realize.
      */
     struct SymbolicGraphNode : SymbolicGraphNodeShallow {
-        std::vector<SymbolicGraphNode> children;
+        std::vector<std::shared_ptr<SymbolicGraphNode>> children;
 
         SymbolicGraphNode(const NodeId hash, std::string kind, js::Object props, const OutputChannel outputChannel,
-                          std::vector<SymbolicGraphNode> children)
+                          std::vector<std::shared_ptr<SymbolicGraphNode>> children)
             : SymbolicGraphNodeShallow{hash, std::move(kind), std::move(props), outputChannel}
               , children(std::move(children)) {
         }
@@ -42,21 +42,21 @@ namespace elem {
     };
 
     namespace SymbolicGraph {
-        static SymbolicGraphNode createNode(std::string kind, js::Object props,
-                                            std::vector<SymbolicGraphNode> children) {
+        static std::shared_ptr<SymbolicGraphNode> createNode(std::string kind, js::Object props,
+                                            std::vector<std::shared_ptr<SymbolicGraphNode>> children) {
             std::vector<NodeId> childHashes;
             childHashes.reserve(children.size());
             for (const auto &child: children) {
-                childHashes.push_back(child.hash);
+                childHashes.push_back(child->hash);
             }
 
-            return SymbolicGraphNode{
+            return std::make_shared<SymbolicGraphNode>(
                 HashUtils::hashNode(kind, props, childHashes),
                 std::move(kind),
                 std::move(props),
                 0,
                 std::move(children)
-            };
+            );
         }
     }
 }

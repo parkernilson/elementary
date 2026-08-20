@@ -73,7 +73,7 @@ namespace elem {
     public:
         explicit Renderer(std::shared_ptr<RuntimeInterface<FloatType> > runtime);
 
-        RenderStats renderGraph(std::vector<SymbolicGraphNode> graphs, RenderOptions options);
+        RenderStats renderGraph(std::vector<std::shared_ptr<SymbolicGraphNode>> graphs, RenderOptions options);
 
     private:
         static js::Array makeCreateNodeInstruction(std::string kind, NodeId hash);
@@ -112,24 +112,24 @@ namespace elem {
                 batch.setProperty.emplace_back(makeSetPropertyInstruction(node.hash, key, value));
             }
             for (const auto &child: node.children) {
-                batch.appendChild.emplace_back(makeAppendChildInstruction(node.hash, child.hash, node.outputChannel));
+                batch.appendChild.emplace_back(makeAppendChildInstruction(node.hash, child->hash, node.outputChannel));
             }
         }
         nodeMap[node.hash] = static_cast<SymbolicGraphNodeShallow>(node);
     }
 
     template<typename FloatType>
-    RenderStats Renderer<FloatType>::renderGraph(std::vector<SymbolicGraphNode> graphs, const RenderOptions options) {
+    RenderStats Renderer<FloatType>::renderGraph(std::vector<std::shared_ptr<SymbolicGraphNode>> graphs, const RenderOptions options) {
         auto const t0 = std::chrono::steady_clock::now();
 
         std::unordered_set<NodeId> visited;
         InstructionBatch instructions;
 
         // Wrap the roots of the graph in root-type nodes
-        std::vector<SymbolicGraphNode> roots;
+        std::vector<std::shared_ptr<SymbolicGraphNode>> roots;
         roots.reserve(graphs.size());
         for (int i = 0; i < graphs.size(); ++i) {
-            std::vector<SymbolicGraphNode> children;
+            std::vector<std::shared_ptr<SymbolicGraphNode>> children;
             children.push_back(std::move(graphs[i]));
             roots.push_back(
                 SymbolicGraph::createNode(
@@ -144,9 +144,9 @@ namespace elem {
             );
         }
 
-        std::vector<const SymbolicGraphNode *> stack;
+        std::vector<std::shared_ptr<SymbolicGraphNode>> stack;
         for (const auto &root: roots) {
-            stack.push_back(&root);
+            stack.push_back(root);
         }
 
         while (!stack.empty()) {
@@ -160,14 +160,14 @@ namespace elem {
             visit(*node, instructions);
 
             for (const auto &child: node->children) {
-                stack.push_back(&child);
+                stack.push_back(child);
             }
         }
 
         std::vector<NodeId> rootHashes;
         rootHashes.reserve(roots.size());
         for (const auto &root: roots) {
-            rootHashes.push_back(root.hash);
+            rootHashes.push_back(root->hash);
         }
 
         instructions.activateRoots.emplace_back(makeActivateRootsInstruction(
