@@ -14,7 +14,7 @@ namespace elem::lib {
 
     static NodeRepr constant(const double value, std::optional<std::string> key=std::nullopt) {
         js::Object props;
-        props.insert({"value", std::move(value)});
+        props.insert({"value", value});
         if (key.has_value()) {
             props.insert({"key", std::move(*key)});
         }
@@ -26,9 +26,9 @@ namespace elem::lib {
          return std::visit([](auto&& r) {
             using T = std::decay_t<decltype(r)>;
             if constexpr (std::is_same_v<T, double>) {
-                return constant(std::move(r));
+                return constant(std::forward<decltype(r)>(r));
             } else if constexpr (std::is_same_v<T, std::shared_ptr<SymbolicGraphNode>>) {
-                return std::move(r);
+                return std::forward<decltype(r)>(r);
             }
         }, repr);
     }
@@ -49,7 +49,7 @@ namespace elem::lib {
     static NodeRepr rand(std::optional<double> seed = std::nullopt, std::optional<std::string> key = std::nullopt) {
         js::Object props;
         if (seed.has_value()) {
-            props.insert({"seed", std::move(*seed)});
+            props.insert({"seed", *seed});
         }
         if (key.has_value()) {
             props.insert({"key", std::move(*key)});
