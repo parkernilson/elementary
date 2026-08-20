@@ -33,7 +33,7 @@ namespace elem::lib {
         }, repr);
     }
 
-    static std::vector<NodeRepr> resolveXs(std::vector<ElemNode> xs) {
+    static std::vector<NodeRepr> resolve(std::vector<ElemNode> xs) {
         std::vector<std::shared_ptr<SymbolicGraphNode>> res;
         res.reserve(xs.size());
         for (auto& x : xs) {
@@ -65,6 +65,6 @@ namespace elem::lib {
         if (key.has_value()) {
             props.insert({"key", std::move(*key)});
         }
-        return SymbolicGraph::createNode("meter", std::move(props), resolveXs(std::move(children)));
+        return SymbolicGraph::createNode("meter", std::move(props), resolve(std::move(children)));
     }
 }

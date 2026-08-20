@@ -12,6 +12,6 @@ namespace elem::lib {
     }
 
     static NodeRepr mul(std::vector<ElemNode> xs) {
-        return SymbolicGraph::createNode("mul", {}, resolveXs(std::move(xs)));
+        return SymbolicGraph::createNode("mul", {}, resolve(std::move(xs)));
     }
 }
