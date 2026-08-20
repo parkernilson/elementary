@@ -6,6 +6,10 @@ namespace elem::lib {
     using ElemNode = std::variant<std::shared_ptr<SymbolicGraphNode>, double>;
     // TODO: Should we name this SymbolicNode or Symbol or Signal or something?
     // NodeRepr is probably the right type because it follows the js core pattern
+    // TODO: Maybe we should put NodeRepr in the elem namespace so we can use it more easily in other contexts...
+    // like for example tests. Unless elem::lib::NodeRepr is the best namespace for it?
+    // Also, is it better to just use std::shared_ptr<SymbolicGraphNode>? I think maybe it is because it is easier
+    // to reason about.
     using NodeRepr = std::shared_ptr<SymbolicGraphNode>;
 
     static NodeRepr constant(const double value, std::optional<std::string> key=std::nullopt) {

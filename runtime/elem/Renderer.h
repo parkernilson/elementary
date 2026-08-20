@@ -60,7 +60,7 @@ namespace elem {
         int32_t fadeOutMs = 20;
     };
 
-    struct RenderStats {
+    struct RenderResult {
         int result = 0;
         int32_t nodesAdded = 0;
         int32_t edgesAdded = 0;
@@ -73,7 +73,7 @@ namespace elem {
     public:
         explicit Renderer(std::shared_ptr<RuntimeInterface<FloatType> > runtime);
 
-        RenderStats renderGraph(std::vector<std::shared_ptr<SymbolicGraphNode>> graphs, RenderOptions options);
+        RenderResult renderGraph(std::vector<std::shared_ptr<SymbolicGraphNode>> graphs, RenderOptions options = {});
 
     private:
         static js::Array makeCreateNodeInstruction(std::string kind, NodeId hash);
@@ -119,7 +119,7 @@ namespace elem {
     }
 
     template<typename FloatType>
-    RenderStats Renderer<FloatType>::renderGraph(std::vector<std::shared_ptr<SymbolicGraphNode>> graphs, const RenderOptions options) {
+    RenderResult Renderer<FloatType>::renderGraph(std::vector<std::shared_ptr<SymbolicGraphNode>> graphs, const RenderOptions options) {
         auto const t0 = std::chrono::steady_clock::now();
 
         std::unordered_set<NodeId> visited;
@@ -176,7 +176,7 @@ namespace elem {
         );
         instructions.commitUpdates.emplace_back(makeCommitUpdatesInstruction());
 
-        RenderStats stats;
+        RenderResult stats;
         stats.nodesAdded = static_cast<int32_t>(instructions.createNode.size());
         stats.edgesAdded = static_cast<int32_t>(instructions.appendChild.size());
         stats.propsWritten = static_cast<int32_t>(instructions.setProperty.size());
