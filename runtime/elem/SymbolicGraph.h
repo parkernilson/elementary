@@ -31,14 +31,6 @@ namespace elem {
             : SymbolicGraphNodeShallow{hash, std::move(kind), std::move(props), outputChannel}
               , children(std::move(children)) {
         }
-
-        SymbolicGraphNode(SymbolicGraphNode const &) = delete;
-
-        SymbolicGraphNode &operator=(SymbolicGraphNode const &) = delete;
-
-        SymbolicGraphNode(SymbolicGraphNode &&) = default;
-
-        SymbolicGraphNode &operator=(SymbolicGraphNode &&) = default;
     };
 
     namespace SymbolicGraph {
@@ -64,6 +56,22 @@ namespace elem {
                 std::move(children)
             );
         }
+
+        static std::vector<std::shared_ptr<SymbolicGraphNode>> unpack(const std::shared_ptr<SymbolicGraphNode>& node, const int numChannels) {
+            std::vector<std::shared_ptr<SymbolicGraphNode>> siblings;
+            siblings.reserve(numChannels);
+
+            node->outputChannel = 0;
+            for (int i = 1; i < numChannels; i++) {
+                auto sibling = std::make_shared<SymbolicGraphNode>(*node);
+                sibling->outputChannel = i;
+                siblings.push_back(sibling);
+            }
+
+            return siblings;
+        }
+
+        // TODO: createRef
     }
 }
 
