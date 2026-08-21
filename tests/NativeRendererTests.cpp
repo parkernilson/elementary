@@ -57,9 +57,14 @@ TEST(NativeRendererSnapshotTests, RendersBasicSineWave) {
 
 // TODO: Changing a leaf node re-creates the whole tree
 
-// TODO: Updating a leaf node with a ref retProperty (Need to implement createRef) only sends 1 setProperty
-
 // TODO: Render a tree with Multi-Channel nodes
+/*
+ * I think the way that multi-channel nodes work is that their hash is the same because outputChannel is not factored
+ * into the hash (or if you give it a key then the key is the hash). But then, the parents of the mc node address diff
+ * outputChannels, and the outputChannel is factored into the child hashes... (why does this matter? I think it means
+ * that if a parent is changed to address a different outputChannel it would change the parent hash and cause it to be
+ * re-created. That is probably why it matters).
+ */
 
 // TODO: Changing a node in the middle of the tree redraws only the parents of that node
 
@@ -69,5 +74,6 @@ TEST(NativeRendererSnapshotTests, RendersBasicSineWave) {
 // TODO: Custom node is created successfully
 
 // TODO: Node with "key" prop is not re-created when prop is changed and parents are not recreated
+// (All the correct props are updated with setProperty instructions)
 
-// TODO:
+// TODO: setter returned by createRef updates the props correctly (only sends one setProperty instruction)

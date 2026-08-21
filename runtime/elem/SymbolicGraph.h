@@ -42,6 +42,12 @@ namespace elem {
     };
 
     namespace SymbolicGraph {
+
+        // TODO: I think we probably don't need a createRef function (or if we do, it could just call
+        // createNode under the hood), we just need to set "key" on the props, and then provide a way to
+        // setProperty nodeKey, propKey, propValue from the client.
+        // Can we assume that props.key will always override the hashing? Is that an assumption we can make?
+
         static std::shared_ptr<SymbolicGraphNode> createNode(std::string kind, js::Object props,
                                             std::vector<std::shared_ptr<SymbolicGraphNode>> children) {
             std::vector<NodeId> childHashes;
