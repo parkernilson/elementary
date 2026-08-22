@@ -41,7 +41,7 @@ namespace elem::HashUtils {
         for (const auto child: children) {
             r = mixNumber(r, child);
         }
-        // TODO: Why do we use signed it but ensure it's always positive with finalHash?
+        // TODO: Why do we use signed int but ensure it's always positive with finalHash?
         return finalizeHash(r);
     }
 }
