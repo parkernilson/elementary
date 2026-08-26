@@ -8,7 +8,6 @@
 #include "DefaultNodeTypes.h"
 #include "GraphNode.h"
 #include "GraphRenderSequence.h"
-#include "RuntimeInterface.h"
 #include "Types.h"
 #include "Value.h"
 #include "JSON.h"
@@ -55,7 +54,7 @@ namespace elem
         // Apply graph rendering instructions
         int applyInstructions(js::Array const& batch);
 
-        std::optional<GraphNode<FloatType> const&> findNode(NodeId const& id);
+        GraphNode<FloatType> const* findNode(NodeId const& id);
         const std::set<NodeId>& getCurrentRoots();
 
         // Run the internal audio processing callback
@@ -222,11 +221,11 @@ namespace elem
     }
 
     template <typename FloatType>
-    std::optional<GraphNode<FloatType> const&> Runtime<FloatType>::findNode(NodeId const& id) {
+    GraphNode<FloatType> const* Runtime<FloatType>::findNode(NodeId const& id) {
         if (const auto& node = nodeTable.find(id); node != nodeTable.end()) {
-            return *node;
+            return node->second.node.get();
         }
-        return std::nullopt;
+        return nullptr;
     }
 
     template <typename FloatType>

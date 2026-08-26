@@ -70,6 +70,7 @@ namespace elem
 
         // Returns a copy of the entire property object in its current state
         js::Object getProperties();
+        js::Object getProperties() const;
 
         // Process the next block of audio data.
         //
@@ -137,6 +138,11 @@ namespace elem
 
     template <typename FloatType>
     js::Object GraphNode<FloatType>::getProperties() {
+        return js::Object(props.begin(), props.end());
+    }
+
+    template <typename FloatType>
+    js::Object GraphNode<FloatType>::getProperties() const {
         return js::Object(props.begin(), props.end());
     }
 

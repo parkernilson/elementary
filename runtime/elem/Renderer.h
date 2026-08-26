@@ -116,7 +116,7 @@ namespace elem {
 
     template<typename FloatType>
     void Renderer<FloatType>::mount(const SymbolicGraphNode &node, InstructionBatch &batch) {
-        if (const auto &existingNode = mRuntime->findNode(node.hash); existingNode != std::nullopt) {
+        if (const auto *existingNode = mRuntime->findNode(node.hash); existingNode != nullptr) {
             updateNodeProps(node.hash, existingNode->getProperties(), node.props, batch);
         } else {
             batch.createNode.emplace_back(makeCreateNodeInstruction(node.kind, node.hash));
@@ -215,7 +215,7 @@ namespace elem {
                 return;
             }
 
-            if (const auto& existing = runtime->findNode(hash); existing != std::nullopt) {
+            if (const auto* existing = runtime->findNode(hash); existing != nullptr) {
                 InstructionBatch instructions;
                 updateNodeProps(hash, existing->getProperties(), newProps, instructions);
                 instructions.commitUpdates.emplace_back(makeCommitUpdatesInstruction());
