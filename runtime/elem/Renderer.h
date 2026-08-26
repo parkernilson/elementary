@@ -5,7 +5,6 @@
 #include <unordered_set>
 
 #include "Runtime.h"
-#include "RuntimeInterface.h"
 #include "SymbolicGraph.h"
 
 // TODO: We should create an elemcli-native target that uses the native renderer so that these files
@@ -76,7 +75,7 @@ namespace elem {
     template<typename FloatType>
     class Renderer {
     public:
-        explicit Renderer(std::shared_ptr<RuntimeInterface<FloatType> > runtime);
+        explicit Renderer(std::shared_ptr<Runtime<FloatType> > runtime);
 
         RenderResult renderGraph(std::vector<std::shared_ptr<SymbolicGraphNode>> graphs, RenderOptions options = {});
 
@@ -99,7 +98,7 @@ namespace elem {
 
         void visit(const SymbolicGraphNode &node, InstructionBatch &batch);
 
-        std::shared_ptr<RuntimeInterface<FloatType> > mRuntime;
+        std::shared_ptr<Runtime<FloatType> > mRuntime;
         // TODO: Is it okay to store shared_ptr<SymbolicGraphNode> in nodeMap, using the same symbolic graph node's
         // that are passed to the renderGraph method?
         // I guess the unsafe thing about this would be that we don't know what the caller does with the shared_ptr's
@@ -118,7 +117,7 @@ namespace elem {
     };
 
     template<typename FloatType>
-    Renderer<FloatType>::Renderer(std::shared_ptr<RuntimeInterface<FloatType> > runtime) : mRuntime{std::move(runtime)} {
+    Renderer<FloatType>::Renderer(std::shared_ptr<Runtime<FloatType> > runtime) : mRuntime{std::move(runtime)} {
     }
 
     // TODO: updates to nodes in nodeMap should be updated via nodeMap[key].props = {...}, not via shared_ptr access

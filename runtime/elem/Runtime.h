@@ -45,7 +45,7 @@ namespace elem
     // Users may also implement custom graph nodes by extending the GraphNode
     // interface and then registering with the Runtime via `registerNodeType`.
     template <typename FloatType>
-    class Runtime : public RuntimeInterface<FloatType>
+    class Runtime
     {
     public:
         //==============================================================================
@@ -53,7 +53,9 @@ namespace elem
 
         //==============================================================================
         // Apply graph rendering instructions
-        int applyInstructions(js::Array const& batch) override;
+        int applyInstructions(js::Array const& batch);
+
+        std::optional<GraphNode<FloatType> const&> findNode(NodeId const& id);
 
         // Run the internal audio processing callback
         void process(
@@ -216,6 +218,14 @@ namespace elem
         }
 
         return ReturnCode::Ok();
+    }
+
+    template <typename FloatType>
+    std::optional<GraphNode<FloatType> const&> Runtime<FloatType>::findNode(NodeId const& id) {
+        if (const auto& node = nodeTable.find(id); node != nodeTable.end()) {
+            return *node;
+        }
+        return std::nullopt;
     }
 
     template <typename FloatType>
