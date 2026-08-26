@@ -93,8 +93,7 @@ namespace elem {
 
         static js::Array makeCommitUpdatesInstruction();
 
-        // TODO: return ReturnCode?
-        static void updateNodeProps(NodeId hash, const js::Object& oldProps, js::Object newProps, InstructionBatch &batch);
+        static void updateNodeProps(NodeId hash, const js::Object& oldProps, const js::Object& newProps, InstructionBatch &batch);
 
         void mount(const SymbolicGraphNode &node, InstructionBatch &batch);
 
@@ -106,17 +105,11 @@ namespace elem {
     Renderer<FloatType>::Renderer(std::shared_ptr<Runtime<FloatType> > runtime) : mRuntime{std::move(runtime)} {
     }
 
-    // TODO: this should get the old props via mRuntime->findNode(nodeId).getProps(), and it doesn't need to update the props
-    // it just needs to create the instruction, since the source of truth will be changed when the instructions are resolved
     template<typename FloatType>
-    void Renderer<FloatType>::updateNodeProps(const NodeId hash, const js::Object& oldProps, js::Object newProps, InstructionBatch &batch) {
-        for (auto& [key, value] : newProps) {
+    void Renderer<FloatType>::updateNodeProps(const NodeId hash, const js::Object& oldProps, const js::Object& newProps, InstructionBatch &batch) {
+        for (const auto& [key, value] : newProps) {
             if (auto oldProp = oldProps.find(key); oldProp == oldProps.end() || oldProp->second != value) {
-                // The only way that we have an old node and new node with different props but the same
-                // hash (i.e. an "existing" node when we do a render pass) is if the node has a "key"
-                // identity. Therefore, the hash is stable across differing props
-                // TODO: Is it possible to std::move the key somehow?
-                batch.setProperty.emplace_back(makeSetPropertyInstruction(hash, key, std::move(value)));
+                batch.setProperty.emplace_back(makeSetPropertyInstruction(hash, key, value));
             }
         }
     }
@@ -124,7 +117,6 @@ namespace elem {
     template<typename FloatType>
     void Renderer<FloatType>::mount(const SymbolicGraphNode &node, InstructionBatch &batch) {
         if (const auto &existingNode = mRuntime->findNode(node.hash); existingNode != std::nullopt) {
-            // TODO: Can I safely move the new props here?
             updateNodeProps(node.hash, existingNode->getProperties(), node.props, batch);
         } else {
             batch.createNode.emplace_back(makeCreateNodeInstruction(node.kind, node.hash));
@@ -212,19 +204,24 @@ namespace elem {
     NodeRef Renderer<FloatType>::createRef(std::string kind, js::Object props, std::vector<std::shared_ptr<SymbolicGraphNode>> children) {
         if (props.count("key") < 0) props["key"] = "__refKey:" + nextRefId++;
         auto node = SymbolicGraph::createNode(std::move(kind), std::move(props), std::move(children));
-        // TODO: js core returns a `setter` that takes `newProps` and applies all the new props via
-        // updateNodeProps which compares newProps against the current props in the nodeMap then updates them.
-        // This optimizes for batching instructions together in the same js->c++ message and instructions commit.
-        auto setProperty = [node](js::Object newProps) {
-            // TODO: updateNodeProps
 
-            // TODO: send setProperties instructions + commitUpdates instruction to applyInstructions of runtime
+        std::weak_ptr<Runtime<FloatType>> wRuntime = mRuntime;
 
-            // TODO: update the property in nodeMap here (if we aren't able to do it through shared_ptr in updateNodeProps
-            // TODO: If we want to do this with proper transaction semantics (which I'm not sure we are committed to in this PR,
-            // we would need to queue the update to nodeMap in a way that only triggers upon successfully applying the
-            // instructions).
+        auto setProperty = [hash = node->hash, wRuntime](const js::Object& newProps) {
+            const auto& runtime = wRuntime.lock();
+            if (runtime == nullptr) {
+                // TODO: Return an error code or throw an error or something
+                return;
+            }
+
+            if (const auto& existing = runtime->findNode(hash); existing != std::nullopt) {
+                InstructionBatch instructions;
+                updateNodeProps(hash, existing->getProperties(), newProps, instructions);
+                instructions.commitUpdates.emplace_back(makeCommitUpdatesInstruction());
+                runtime->applyInstructions(instructions);
+            }
         };
+
         return NodeRef{
             std::move(node),
             std::move(setProperty)
