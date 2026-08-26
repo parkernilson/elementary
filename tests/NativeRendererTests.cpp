@@ -5,7 +5,7 @@
 #include "elem/Runtime.h"
 #include "elem/SymbolicGraph.h"
 
-#include "SnapshotTestUtils.h"
+#include "GraphSnapshotTestUtils.h"
 #include "elem/lib/Math.h"
 #include "elem/lib/Oscillators.h"
 
@@ -15,7 +15,7 @@ TEST(NativeRendererSnapshotTests, RendersBasicSineWave) {
 
     const auto result = renderer.renderGraph({elem::lib::cycle(440.0)});
 
-    elem::test::verifySnapshot(
+    elem::test::verifyGraphSnapshot(
         "BasicSineWaveGraph",
         elem::js::serialize(elem::js::Value(runtime->snapshot()))
     );
@@ -39,7 +39,7 @@ TEST(NativeRendererSnapshotTests, NumericLiteralIsResolvedToConstantNode) {
         )
     });
 
-    elem::test::verifySnapshot(
+    elem::test::verifyGraphSnapshot(
         "BasicSineWaveGraphNumericLiteral",
         elem::js::serialize(elem::js::Value(runtime->snapshot()))
     );
