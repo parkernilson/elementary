@@ -33,7 +33,7 @@ namespace elem::test {
     inline std::string graphMermaidDiagram(nlohmann::json const &graph) {
         std::ostringstream out;
         out << "```mermaid\n";
-        out << "flowchart LR\n";
+        out << "flowchart TD\n";
 
         for (auto const &[nodeId, node] : graph.items()) {
             auto const kind = node.value("kind", "");

@@ -1,5 +1,5 @@
 ```mermaid
-flowchart LR
+flowchart TD
     n0x2c2454fd["0x2c2454fd<br/>phasor<br/>_internal:numChildren=1.0"]
     n0x3e6a1ebb["0x3e6a1ebb<br/>const<br/>value=6.2831854820251465"]
     n0x479e61a7["0x479e61a7<br/>const<br/>value=440.0"]
