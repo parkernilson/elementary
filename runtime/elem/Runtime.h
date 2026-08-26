@@ -56,6 +56,7 @@ namespace elem
         int applyInstructions(js::Array const& batch);
 
         std::optional<GraphNode<FloatType> const&> findNode(NodeId const& id);
+        const std::set<NodeId>& getCurrentRoots();
 
         // Run the internal audio processing callback
         void process(
@@ -226,6 +227,11 @@ namespace elem
             return *node;
         }
         return std::nullopt;
+    }
+
+    template <typename FloatType>
+    const std::set<NodeId>& Runtime<FloatType>::getCurrentRoots() {
+        return currentRoots;
     }
 
     template <typename FloatType>

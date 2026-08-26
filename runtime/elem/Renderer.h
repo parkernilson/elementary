@@ -89,7 +89,7 @@ namespace elem {
 
         static js::Array makeSetPropertyInstruction(NodeId hash, std::string key, js::Value value);
 
-        static js::Array makeActivateRootsInstruction(std::vector<NodeId> roots);
+        static js::Array makeActivateRootsInstruction(std::set<NodeId> roots);
 
         static js::Array makeCommitUpdatesInstruction();
 
@@ -175,16 +175,17 @@ namespace elem {
             }
         }
 
-        std::vector<NodeId> rootHashes;
-        rootHashes.reserve(roots.size());
+        std::set<NodeId> rootHashes;
         for (const auto &root: roots) {
-            rootHashes.push_back(root->hash);
+            rootHashes.insert(root->hash);
         }
 
-        instructions.activateRoots.emplace_back(makeActivateRootsInstruction(
-                std::move(rootHashes)
-            )
-        );
+        if (rootHashes != mRuntime->getCurrentRoots()) {
+            instructions.activateRoots.emplace_back(makeActivateRootsInstruction(
+                    std::move(rootHashes)
+                )
+            );
+        }
         instructions.commitUpdates.emplace_back(makeCommitUpdatesInstruction());
 
         RenderResult stats;
@@ -251,8 +252,7 @@ namespace elem {
     }
 
     template<typename FloatType>
-    js::Array Renderer<FloatType>::makeActivateRootsInstruction(std::vector<NodeId> roots) {
-        // TODO: Don't activate roots if they are already active (see js core renderer)
+    js::Array Renderer<FloatType>::makeActivateRootsInstruction(std::set<NodeId> roots) {
         return {JsInstructionType::ACTIVATE_ROOTS, js::Array(roots.begin(), roots.end())};
     }
 
