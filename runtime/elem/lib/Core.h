@@ -220,21 +220,21 @@ namespace elem::lib {
         loop,       std::optional<bool>
     )
 
-    // TODO: seq, seq2, sparseq, sparseq2, sampleseq, sampleseq2 (they all have some more advanced TS types
+    static NodeRepr seq(js::NumberArray seq, SeqProps props, ElemNode trigger, ElemNode reset) {
+        js::Object jsProps = props.takeJsObject();
+        jsProps.insert({"seq", std::move(seq)});
+        return SymbolicGraph::createNode("seq", std::move(jsProps),
+            resolve({std::move(trigger), std::move(reset)}));
+    }
 
-    // static NodeRepr seq(std::vector<js::Number> seq, SeqProps props, ElemNode trigger, ElemNode reset) {
-    //     js::Object jsProps = props.takeJsObject();
-    //     jsProps.insert({"seq", std::move(seq)});
-    //     return SymbolicGraph::createNode("seq", std::move(jsProps),
-    //         resolve({std::move(trigger), std::move(reset)}));
-    // }
-    //
-    // static NodeRepr seq2(std::vector<js::Number> seq, SeqProps props, ElemNode trigger, ElemNode reset) {
-    //     js::Object jsProps = props.takeJsObject();
-    //     jsProps.insert({"seq", std::move(seq)});
-    //     return SymbolicGraph::createNode("seq2", std::move(jsProps),
-    //         resolve({std::move(trigger), std::move(reset)}));
-    // }
+    static NodeRepr seq2(js::NumberArray seq, SeqProps props, ElemNode trigger, ElemNode reset) {
+        js::Object jsProps = props.takeJsObject();
+        jsProps.insert({"seq", std::move(seq)});
+        return SymbolicGraph::createNode("seq2", std::move(jsProps),
+            resolve({std::move(trigger), std::move(reset)}));
+    }
+
+    // TODO: sparseq, sparseq2, sampleseq, sampleseq2 (they all have some more advanced TS types
 
     static NodeRepr pole(ElemNode p, ElemNode x) {
         return SymbolicGraph::createNode("pole", {},
