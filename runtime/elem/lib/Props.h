@@ -1,5 +1,6 @@
 #pragma once
 
+#include <initializer_list>
 #include <optional>
 #include <type_traits>
 #include <utility>
@@ -15,6 +16,12 @@ namespace elem::lib {
         T value;
         Required() = delete;
         Required(T v) : value(std::move(v)) {}
+
+        // Lets container-typed fields (e.g. Required<js::NumberArray>) be brace-initialized
+        // directly, e.g. `.seq = {1.0, 2.0, 3.0}`, instead of needing `.seq = {{1.0, 2.0, 3.0}}`.
+        template <typename U, typename = std::enable_if_t<std::is_constructible_v<T, std::initializer_list<U>>>>
+        Required(std::initializer_list<U> il) : value(il) {}
+
         operator T&() { return value; }
         operator const T&() const { return value; }
     };
@@ -61,7 +68,9 @@ namespace elem::lib {
     #define ELEM_FOR_EACH_PAIR_6(action, name, type, ...)  action(name, type) ELEM_FOR_EACH_PAIR_4(action, __VA_ARGS__)
     #define ELEM_FOR_EACH_PAIR_8(action, name, type, ...)  action(name, type) ELEM_FOR_EACH_PAIR_6(action, __VA_ARGS__)
     #define ELEM_FOR_EACH_PAIR_10(action, name, type, ...) action(name, type) ELEM_FOR_EACH_PAIR_8(action, __VA_ARGS__)
-    // Extend with _12, _14, ... if a Props struct ever needs more fields than this.
+    #define ELEM_FOR_EACH_PAIR_12(action, name, type, ...) action(name, type) ELEM_FOR_EACH_PAIR_10(action, __VA_ARGS__)
+    #define ELEM_FOR_EACH_PAIR_14(action, name, type, ...) action(name, type) ELEM_FOR_EACH_PAIR_12(action, __VA_ARGS__)
+    // Extend with _16, _18, ... if a Props struct ever needs more fields than this.
 
     #define ELEM_FOR_EACH_PAIR(action, ...) \
         ELEM_CONCAT(ELEM_FOR_EACH_PAIR_, ELEM_ARG_COUNT(__VA_ARGS__))(action, __VA_ARGS__)

@@ -128,65 +128,58 @@ namespace elem::lib {
     DEFINE_PROPS_STRUCT(
         SampleProps,
         key,         std::optional<std::string>,
+        path,        Required<std::string>,
         mode,        std::optional<std::string>,
         startOffset, std::optional<js::Number>,
         stopOffset,  std::optional<js::Number>
     )
 
-    static NodeRepr sample(std::string path, SampleProps props, ElemNode trigger, ElemNode rate) {
-        js::Object jsProps = props.takeJsObject();
-        jsProps.insert({"path", std::move(path)});
-        return SymbolicGraph::createNode("sample", std::move(jsProps),
+    static NodeRepr sample(SampleProps props, ElemNode trigger, ElemNode rate) {
+        return SymbolicGraph::createNode("sample", props.takeJsObject(),
             resolve({std::move(trigger), std::move(rate)}));
     }
 
     DEFINE_PROPS_STRUCT(
         TableProps,
-        key,        std::optional<std::string>
+        key,        std::optional<std::string>,
+        path,       Required<std::string>
     )
 
-    static NodeRepr table(std::string path, TableProps props, ElemNode t) {
-        js::Object jsProps = props.takeJsObject();
-        jsProps.insert({"path", std::move(path)});
-        return SymbolicGraph::createNode("table", std::move(jsProps),
+    static NodeRepr table(TableProps props, ElemNode t) {
+        return SymbolicGraph::createNode("table", props.takeJsObject(),
             {resolve(std::move(t))});
     }
 
     DEFINE_PROPS_STRUCT(
         ConvolveProps,
-        key,        std::optional<std::string>
+        key,        std::optional<std::string>,
+        path,       Required<std::string>
     )
 
-    static NodeRepr convolve(std::string path, ConvolveProps props, ElemNode x) {
-        js::Object jsProps = props.takeJsObject();
-        jsProps.insert({"path", std::move(path)});
-        return SymbolicGraph::createNode("convolve", std::move(jsProps),
+    static NodeRepr convolve(ConvolveProps props, ElemNode x) {
+        return SymbolicGraph::createNode("convolve", props.takeJsObject(),
             {resolve(std::move(x))});
     }
 
     DEFINE_PROPS_STRUCT(
         SeqProps,
         key,        std::optional<std::string>,
+        seq,        Required<js::NumberArray>,
         offset,     std::optional<js::Number>,
         hold,       std::optional<bool>,
         loop,       std::optional<bool>
     )
 
-    static NodeRepr seq(js::NumberArray seq, SeqProps props, ElemNode trigger, ElemNode reset) {
-        js::Object jsProps = props.takeJsObject();
-        jsProps.insert({"seq", std::move(seq)});
-        return SymbolicGraph::createNode("seq", std::move(jsProps),
+    static NodeRepr seq(SeqProps props, ElemNode trigger, ElemNode reset) {
+        return SymbolicGraph::createNode("seq", props.takeJsObject(),
             resolve({std::move(trigger), std::move(reset)}));
     }
 
-    static NodeRepr seq2(js::NumberArray seq, SeqProps props, ElemNode trigger, ElemNode reset) {
-        js::Object jsProps = props.takeJsObject();
-        jsProps.insert({"seq", std::move(seq)});
-        return SymbolicGraph::createNode("seq2", std::move(jsProps),
+    static NodeRepr seq2(SeqProps props, ElemNode trigger, ElemNode reset) {
+        return SymbolicGraph::createNode("seq2", props.takeJsObject(),
             resolve({std::move(trigger), std::move(reset)}));
     }
 
-    // TODO: Reduce the boilerplate for sparseq and sparseq2 and make sure it is efficient
     DEFINE_PROPS_STRUCT(
         SparSeqStep,
         value,    Required<js::Number>,
@@ -206,7 +199,7 @@ namespace elem::lib {
     DEFINE_PROPS_STRUCT(
         SparSeqProps,
         key,            std::optional<std::string>,
-        offset,         std::optional<js::Number>,
+        offset,         std::optinal<js::Number>,
         loop,           std::optional<SparSeqLoop>,
         interpolate,    std::optional<js::Number>,
         tickInterval,   std::optional<js::Number>
