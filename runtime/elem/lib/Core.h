@@ -26,7 +26,11 @@ namespace elem::lib {
         return SymbolicGraph::createNode("const", std::move(props), {});
     }
 
-    // TODO: Comment me
+    /**
+     * Some nodes can be represented by literal values. For example, constants can
+     * be written as numerical values. The `resolve` method wraps theses literal
+     * representations with the correct node.
+     */
     static NodeRepr resolve(ElemNode repr) {
          return std::visit([](auto&& r) {
             using T = std::decay_t<decltype(r)>;
