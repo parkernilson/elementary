@@ -5,45 +5,10 @@
 #include <utility>
 
 #include "elem/SymbolicGraph.h"
+#include "elem/lib/NodeUtils.h"
 #include "elem/lib/Props.h"
 
 namespace elem::lib {
-    using ElemNode = std::variant<std::shared_ptr<SymbolicGraphNode>, js::Number>;
-    using NodeRepr = std::shared_ptr<SymbolicGraphNode>;
-
-    static NodeRepr constant(const js::Number value, std::optional<std::string> key=std::nullopt) {
-        js::Object props;
-        props.insert({"value", value});
-        if (key.has_value()) {
-            props.insert({"key", std::move(*key)});
-        }
-        return SymbolicGraph::createNode("const", std::move(props), {});
-    }
-
-    /**
-     * Some nodes can be represented by literal values. For example, constants can
-     * be written as numerical values. The `resolve` method wraps theses literal
-     * representations with the correct node.
-     */
-    static NodeRepr resolve(ElemNode repr) {
-         return std::visit([](auto&& r) {
-            using T = std::decay_t<decltype(r)>;
-            if constexpr (std::is_same_v<T, double>) {
-                return constant(std::forward<decltype(r)>(r));
-            } else if constexpr (std::is_same_v<T, std::shared_ptr<SymbolicGraphNode>>) {
-                return std::forward<decltype(r)>(r);
-            }
-        }, repr);
-    }
-
-    static std::vector<NodeRepr> resolve(std::vector<ElemNode> xs) {
-        std::vector<std::shared_ptr<SymbolicGraphNode>> res;
-        res.reserve(xs.size());
-        for (auto& x : xs) {
-            res.emplace_back(resolve(std::move(x)));
-        }
-        return res;
-    }
 
     static NodeRepr sr() {
         return SymbolicGraph::createNode("sr", {}, {});

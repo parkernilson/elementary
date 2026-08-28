@@ -1,0 +1,42 @@
+#pragma once
+
+#include "elem/lib/Core.h"
+#include "elem/lib/Math.h"
+#include "elem/lib/NodeUtils.h"
+
+namespace elem::lib {
+    static NodeRepr ms2samps(ElemNode t) {
+        return mul({sr(), div({std::move(t), 1000.0})});
+    }
+
+    static NodeRepr tau2pole(ElemNode t) {
+        return exp(div({-1.0, mul({std::move(t), sr()})}));
+    }
+
+    static NodeRepr db2gain(ElemNode db) {
+        return pow(10.0, mul({std::move(db), 1.0 / 20.0}));
+    }
+
+    static NodeRepr select(ElemNode g, ElemNode a, ElemNode b) {
+        return add({mul({g, a}), mul({sub({1.0, std::move(g)}), std::move(b)})});
+    }
+
+    static NodeRepr gain2db(ElemNode gain) {
+        auto isPositive = ge(gain, 0.0);
+        return select(
+            std::move(isPositive),
+            max({
+                -120.0,
+                mul({
+                    20.0,
+                    log(std::move(gain))
+                })
+            }),
+            -120.0
+        );
+    }
+
+    static NodeRepr hann(ElemNode t) {
+        return mul({0.5, sub({1.0, cos(mul({2.0 * PI<float>, std::move(t)}))})});
+    }
+}

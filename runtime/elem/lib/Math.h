@@ -2,6 +2,7 @@
 
 #include "Core.h"
 #include "elem/SymbolicGraph.h"
+#include "elem/lib/NodeUtils.h"
 #include "elem/lib/Props.h"
 
 namespace elem::lib {
