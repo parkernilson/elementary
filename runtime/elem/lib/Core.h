@@ -5,65 +5,9 @@
 #include <utility>
 
 #include "elem/SymbolicGraph.h"
-
-// TODO: Is it bad to call DEFINE_PROPS_STRUCT so repetitively in this file? Does it bloat the binary?
-// i.e. should we prefer to have shared props structs for the ones that have the same keys like "key"
-// and "key, value"
+#include "elem/lib/Props.h"
 
 namespace elem::lib {
-    namespace detail {
-        template <typename T>
-        struct is_optional : std::false_type {};
-        template <typename T>
-        struct is_optional<std::optional<T>> : std::true_type {};
-
-        template <typename T>
-        void insertPropField(js::Object& obj, const char* name, T&& value) {
-            using Decayed = std::decay_t<T>;
-            if constexpr (is_optional<Decayed>::value) {
-                if (value.has_value()) {
-                    obj.insert({name, *std::forward<T>(value)});
-                }
-            } else {
-                obj.insert({name, std::forward<T>(value)});
-            }
-        }
-    }
-
-    #define ELEM_DECLARE_FIELD(name, type) type name;
-    #define ELEM_INSERT_FIELD(name, type) elem::lib::detail::insertPropField(jsProps, #name, std::move(name));
-
-    // Counts total variadic args (2 per field)
-    #define ELEM_ARG_COUNT(...) ELEM_ARG_COUNT_IMPL(__VA_ARGS__, \
-        20,19,18,17,16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0)
-    #define ELEM_ARG_COUNT_IMPL(_1,_2,_3,_4,_5,_6,_7,_8,_9,_10,_11,_12,_13,_14,_15,_16,_17,_18,_19,_20,N,...) N
-
-    #define ELEM_CONCAT_(a, b) a##b
-    #define ELEM_CONCAT(a, b) ELEM_CONCAT_(a, b)
-
-    #define ELEM_FOR_EACH_PAIR_2(action, name, type)  action(name, type)
-    #define ELEM_FOR_EACH_PAIR_4(action, name, type, ...)  action(name, type) ELEM_FOR_EACH_PAIR_2(action, __VA_ARGS__)
-    #define ELEM_FOR_EACH_PAIR_6(action, name, type, ...)  action(name, type) ELEM_FOR_EACH_PAIR_4(action, __VA_ARGS__)
-    #define ELEM_FOR_EACH_PAIR_8(action, name, type, ...)  action(name, type) ELEM_FOR_EACH_PAIR_6(action, __VA_ARGS__)
-    #define ELEM_FOR_EACH_PAIR_10(action, name, type, ...) action(name, type) ELEM_FOR_EACH_PAIR_8(action, __VA_ARGS__)
-    // Extend with _12, _14, ... if a Props struct ever needs more fields than this.
-
-    #define ELEM_FOR_EACH_PAIR(action, ...) \
-        ELEM_CONCAT(ELEM_FOR_EACH_PAIR_, ELEM_ARG_COUNT(__VA_ARGS__))(action, __VA_ARGS__)
-
-    // Declares a struct with the given name/type pairs plus a takeJsObject() method
-    // that moves each field into a js::Object, skipping unset std::optional fields.
-    // takeJsObject() consumes the struct's fields, so it can only be called once.
-    #define DEFINE_PROPS_STRUCT(StructName, ...)                    \
-        struct StructName {                                        \
-            ELEM_FOR_EACH_PAIR(ELEM_DECLARE_FIELD, __VA_ARGS__)     \
-            js::Object takeJsObject() {                            \
-                js::Object jsProps;                                 \
-                ELEM_FOR_EACH_PAIR(ELEM_INSERT_FIELD, __VA_ARGS__)  \
-                return jsProps;                                     \
-            }                                                       \
-        };
-
     using ElemNode = std::variant<std::shared_ptr<SymbolicGraphNode>, js::Number>;
     // TODO: Should we name this SymbolicNode or Symbol or Signal or something?
     // NodeRepr is probably the right type because it follows the js core pattern
@@ -241,8 +185,8 @@ namespace elem::lib {
     // TODO: Reduce the boilerplate for sparseq and sparseq2 and make sure it is efficient
     DEFINE_PROPS_STRUCT(
         SparSeqStep,
-        value,    js::Number,
-        tickTime, js::Number
+        value,    Required<js::Number>,
+        tickTime, Required<js::Number>
     )
 
     inline js::Array takeSparSeqVec(std::vector<SparSeqStep>& vec) {
@@ -273,8 +217,8 @@ namespace elem::lib {
 
     DEFINE_PROPS_STRUCT(
         ValueTimeSeqStep,
-        value,      js::Number,
-        time,       js::Number
+        value,      Required<js::Number>,
+        time,       Required<js::Number>
     )
 
     inline js::Array takeValueTimeSeq(std::vector<ValueTimeSeqStep>& vec) {
@@ -382,9 +326,8 @@ namespace elem::lib {
         return SymbolicGraph::createNode("prewarp", {}, {resolve(std::move(fc))});
     }
 
-    // TODO: We should probably make mode a variant with the correct options for mode,
-    // and then make these all use the same struct KeyModeProps or something (if they have the
-    // same variants)
+    // TODO: Maybe we could make mode into an enum or variant to enumerate its possible values
+
     DEFINE_PROPS_STRUCT(
         MM1PProps,
         key,        std::optional<std::string>,
