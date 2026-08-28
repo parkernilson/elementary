@@ -101,3 +101,34 @@ TEST(NativeRendererSnapshotTests, SimpleSharing) {
     EXPECT_EQ(result2.propsWritten, 3);
     EXPECT_EQ(result2.result, elem::ReturnCode::Ok());
 }
+
+static elem::lib::NodeRepr renderKeyedVoice(std::string key, double freq) {
+    return elem::lib::sin(elem::lib::mul({
+        elem::lib::constant(2.0 * elem::lib::PI<float>),
+        elem::lib::phasor(elem::lib::constant(freq, key)),
+    }));
+}
+
+TEST(NativeRendererSnapshotTests, DistinguishedSubtreesByKey) {
+    const auto runtime = std::make_shared<elem::Runtime<float>>(44100.0, 512);
+    elem::Renderer<float> renderer(runtime);
+
+    const auto result = renderer.renderGraph({
+        elem::lib::add({
+            renderKeyedVoice("fq1", 440),
+            renderKeyedVoice("fq2", 440),
+            renderKeyedVoice("fq3", 440),
+            renderKeyedVoice("fq4", 440),
+        })
+    });
+
+    elem::test::verifyGraphSnapshot(
+        "DistinguishedSubtreesByKey",
+        elem::js::serialize(elem::js::Value(runtime->snapshot()))
+    );
+
+    EXPECT_EQ(result.nodesAdded, 19);
+    EXPECT_EQ(result.edgesAdded, 21);
+    EXPECT_EQ(result.propsWritten, 12);
+    EXPECT_EQ(result.result, elem::ReturnCode::Ok());
+}
