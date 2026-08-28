@@ -4,7 +4,10 @@ project(native_renderer_tests VERSION 0.11.5)
 set(INSTALL_GTEST OFF CACHE BOOL "" FORCE)
 add_subdirectory(third-party/googletest EXCLUDE_FROM_ALL)
 
-add_executable(native-renderer-tests EXCLUDE_FROM_ALL NativeRendererTests.cpp)
+add_executable(native-renderer-tests EXCLUDE_FROM_ALL
+    NativeRendererTests.cpp
+    CoreRendererTests.cpp
+)
 
 target_compile_features(native-renderer-tests PRIVATE cxx_std_17)
 
