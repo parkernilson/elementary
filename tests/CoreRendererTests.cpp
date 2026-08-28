@@ -74,3 +74,30 @@ TEST(NativeRendererSnapshotTests, MultiChannelBasics) {
     EXPECT_EQ(result.propsWritten, 8);
     EXPECT_EQ(result.result, elem::ReturnCode::Ok());
 }
+
+TEST(NativeRendererSnapshotTests, SimpleSharing) {
+    const auto runtime = std::make_shared<elem::Runtime<float>>(44100.0, 512);
+    elem::Renderer<float> renderer(runtime);
+
+    const auto result1 = renderer.renderGraph({elem::lib::cycle(440.0)});
+
+    EXPECT_EQ(result1.nodesAdded, 6);
+    EXPECT_EQ(result1.edgesAdded, 5);
+    EXPECT_EQ(result1.propsWritten, 5);
+    EXPECT_EQ(result1.result, elem::ReturnCode::Ok());
+
+    // Second render inserts a tanh at the top; we should find the existing subtree and
+    // share it, adding only the new tanh node and a new root (since the root's hash
+    // depends on its child, which changed).
+    const auto result2 = renderer.renderGraph({elem::lib::tanh(elem::lib::cycle(440.0))});
+
+    elem::test::verifyGraphSnapshot(
+        "SimpleSharing",
+        elem::js::serialize(elem::js::Value(runtime->snapshot()))
+    );
+
+    EXPECT_EQ(result2.nodesAdded, 2);
+    EXPECT_EQ(result2.edgesAdded, 2);
+    EXPECT_EQ(result2.propsWritten, 3);
+    EXPECT_EQ(result2.result, elem::ReturnCode::Ok());
+}
