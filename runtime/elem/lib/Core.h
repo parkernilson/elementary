@@ -6,6 +6,10 @@
 
 #include "elem/SymbolicGraph.h"
 
+// TODO: Is it bad to call DEFINE_PROPS_STRUCT so repetitively in this file? Does it bloat the binary?
+// i.e. should we prefer to have shared props structs for the ones that have the same keys like "key"
+// and "key, value"
+
 namespace elem::lib {
     namespace detail {
         template <typename T>
@@ -234,7 +238,107 @@ namespace elem::lib {
             resolve({std::move(trigger), std::move(reset)}));
     }
 
-    // TODO: sparseq, sparseq2, sampleseq, sampleseq2 (they all have some more advanced TS types
+    // TODO: Reduce the boilerplate for sparseq and sparseq2 and make sure it is efficient
+    DEFINE_PROPS_STRUCT(
+        SparSeqStep,
+        value,    js::Number,
+        tickTime, js::Number
+    )
+
+    inline js::Array takeSparSeqVec(std::vector<SparSeqStep>& vec) {
+        js::Array arr;
+        arr.reserve(vec.size());
+        for (auto& step : vec) {
+            arr.push_back(step.takeJsObject());
+        }
+        return arr;
+    }
+
+    using SparSeqLoop = std::variant<bool, js::NumberArray>;
+    DEFINE_PROPS_STRUCT(
+        SparSeqProps,
+        key,            std::optional<std::string>,
+        offset,         std::optional<js::Number>,
+        loop,           std::optional<SparSeqLoop>,
+        interpolate,    std::optional<js::Number>,
+        tickInterval,   std::optional<js::Number>
+    );
+
+    static NodeRepr sparseq(std::vector<SparSeqStep> seq, SparSeqProps props, ElemNode trigger, ElemNode reset) {
+        js::Object jsProps = props.takeJsObject();
+        jsProps.insert({"seq", takeSparSeqVec(seq)});
+        return SymbolicGraph::createNode("sparseq", std::move(jsProps),
+            resolve({std::move(trigger), std::move(reset)}));
+    }
+
+    DEFINE_PROPS_STRUCT(
+        ValueTimeSeqStep,
+        value,      js::Number,
+        time,       js::Number
+    )
+
+    inline js::Array takeValueTimeSeq(std::vector<ValueTimeSeqStep>& vec) {
+        js::Array arr;
+        arr.reserve(vec.size());
+        for (auto& step : vec) {
+            arr.push_back(step.takeJsObject());
+        }
+        return arr;
+    }
+
+    DEFINE_PROPS_STRUCT(
+        SparSeq2Props,
+        key,            std::optional<std::string>
+    )
+
+    static NodeRepr sparseq2(std::vector<ValueTimeSeqStep> seq, SparSeq2Props props, ElemNode time) {
+        js::Object jsProps = props.takeJsObject();
+        jsProps.insert({"seq", takeValueTimeSeq(seq)});
+        return SymbolicGraph::createNode("sparseq2", std::move(jsProps),
+            {resolve(std::move(time))});
+    }
+
+    DEFINE_PROPS_STRUCT(
+        SampleSeqProps,
+        key,            std::optional<std::string>
+    )
+
+    static NodeRepr sampleseq(
+        std::string path,
+        js::Number duration,
+        std::vector<ValueTimeSeqStep> seq,
+        SampleSeqProps props,
+        ElemNode time
+    ) {
+        js::Object jsProps = props.takeJsObject();
+        jsProps.insert({"path", std::move(path)});
+        jsProps.insert({"seq", takeValueTimeSeq(seq)});
+        jsProps.insert({"duration", duration});
+        return SymbolicGraph::createNode("sampleseq", std::move(jsProps),
+            {resolve(std::move(time))});
+    }
+
+    DEFINE_PROPS_STRUCT(
+        SampleSeq2Props,
+        key,            std::optional<std::string>,
+        stretch,        std::optional<js::Number>,
+        shift,          std::optional<js::Number>
+    )
+
+    static NodeRepr sampleseq2(
+        std::string path,
+        js::Number duration,
+        std::vector<ValueTimeSeqStep> seq,
+        SampleSeq2Props props,
+        ElemNode time
+    ) {
+        js::Object jsProps = props.takeJsObject();
+        jsProps.insert({"path", std::move(path)});
+        jsProps.insert({"seq", takeValueTimeSeq(seq)});
+        jsProps.insert({"duration", duration});
+        return SymbolicGraph::createNode("sampleseq2", std::move(jsProps),
+            {resolve(std::move(time))});
+    }
 
     static NodeRepr pole(ElemNode p, ElemNode x) {
         return SymbolicGraph::createNode("pole", {},

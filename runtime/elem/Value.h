@@ -64,6 +64,16 @@ namespace js
         Value (Object&& v)              : var(std::move(v)) {}
         Value (Function const& v)       : var(v) {}
 
+        // Converting constructor from any std::variant whose alternatives are each
+        // themselves convertible to Value (e.g. std::variant<Boolean, NumberArray>).
+        template <typename... Ts, typename = std::enable_if_t<(std::is_constructible_v<Value, Ts const&> && ...)>>
+        Value (std::variant<Ts...> const& v)
+            : var(std::visit([](auto const& x) -> VarType { return Value(x).var; }, v)) {}
+
+        template <typename... Ts, typename = std::enable_if_t<(std::is_constructible_v<Value, Ts&&> && ...)>>
+        Value (std::variant<Ts...>&& v)
+            : var(std::visit([](auto&& x) -> VarType { return Value(std::forward<decltype(x)>(x)).var; }, std::move(v))) {}
+
         Value (Value const& valueToCopy) : var(valueToCopy.var) {}
         Value (Value && valueToMove) noexcept : var(std::move(valueToMove.var)) {}
 
