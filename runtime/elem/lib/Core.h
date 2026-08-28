@@ -9,12 +9,6 @@
 
 namespace elem::lib {
     using ElemNode = std::variant<std::shared_ptr<SymbolicGraphNode>, js::Number>;
-    // TODO: Should we name this SymbolicNode or Symbol or Signal or something?
-    // NodeRepr is probably the right type because it follows the js core pattern
-    // TODO: Maybe we should put NodeRepr in the elem namespace so we can use it more easily in other contexts...
-    // like for example tests. Unless elem::lib::NodeRepr is the best namespace for it?
-    // Also, is it better to just use std::shared_ptr<SymbolicGraphNode>? I think maybe it is because it is easier
-    // to reason about.
     using NodeRepr = std::shared_ptr<SymbolicGraphNode>;
 
     static NodeRepr constant(const js::Number value, std::optional<std::string> key=std::nullopt) {
@@ -186,29 +180,19 @@ namespace elem::lib {
         tickTime, Required<js::Number>
     )
 
-    inline js::Array takeSparSeqVec(std::vector<SparSeqStep>& vec) {
-        js::Array arr;
-        arr.reserve(vec.size());
-        for (auto& step : vec) {
-            arr.push_back(step.takeJsObject());
-        }
-        return arr;
-    }
-
     using SparSeqLoop = std::variant<bool, js::NumberArray>;
     DEFINE_PROPS_STRUCT(
         SparSeqProps,
         key,            std::optional<std::string>,
-        offset,         std::optinal<js::Number>,
+        seq,            Required<std::vector<SparSeqStep>>,
+        offset,         std::optional<js::Number>,
         loop,           std::optional<SparSeqLoop>,
         interpolate,    std::optional<js::Number>,
         tickInterval,   std::optional<js::Number>
     );
 
-    static NodeRepr sparseq(std::vector<SparSeqStep> seq, SparSeqProps props, ElemNode trigger, ElemNode reset) {
-        js::Object jsProps = props.takeJsObject();
-        jsProps.insert({"seq", takeSparSeqVec(seq)});
-        return SymbolicGraph::createNode("sparseq", std::move(jsProps),
+    static NodeRepr sparseq(SparSeqProps props, ElemNode trigger, ElemNode reset) {
+        return SymbolicGraph::createNode("sparseq", props.takeJsObject(),
             resolve({std::move(trigger), std::move(reset)}));
     }
 
@@ -218,66 +202,48 @@ namespace elem::lib {
         time,       Required<js::Number>
     )
 
-    inline js::Array takeValueTimeSeq(std::vector<ValueTimeSeqStep>& vec) {
-        js::Array arr;
-        arr.reserve(vec.size());
-        for (auto& step : vec) {
-            arr.push_back(step.takeJsObject());
-        }
-        return arr;
-    }
-
     DEFINE_PROPS_STRUCT(
         SparSeq2Props,
-        key,            std::optional<std::string>
+        key,            std::optional<std::string>,
+        seq,            Required<std::vector<ValueTimeSeqStep>>
     )
 
-    static NodeRepr sparseq2(std::vector<ValueTimeSeqStep> seq, SparSeq2Props props, ElemNode time) {
-        js::Object jsProps = props.takeJsObject();
-        jsProps.insert({"seq", takeValueTimeSeq(seq)});
-        return SymbolicGraph::createNode("sparseq2", std::move(jsProps),
+    static NodeRepr sparseq2(SparSeq2Props props, ElemNode time) {
+        return SymbolicGraph::createNode("sparseq2", props.takeJsObject(),
             {resolve(std::move(time))});
     }
 
     DEFINE_PROPS_STRUCT(
         SampleSeqProps,
-        key,            std::optional<std::string>
+        key,            std::optional<std::string>,
+        path,           Required<std::string>,
+        seq,            Required<std::vector<ValueTimeSeqStep>>,
+        duration,       Required<js::Number>
     )
 
     static NodeRepr sampleseq(
-        std::string path,
-        js::Number duration,
-        std::vector<ValueTimeSeqStep> seq,
         SampleSeqProps props,
         ElemNode time
     ) {
-        js::Object jsProps = props.takeJsObject();
-        jsProps.insert({"path", std::move(path)});
-        jsProps.insert({"seq", takeValueTimeSeq(seq)});
-        jsProps.insert({"duration", duration});
-        return SymbolicGraph::createNode("sampleseq", std::move(jsProps),
+        return SymbolicGraph::createNode("sampleseq", props.takeJsObject(),
             {resolve(std::move(time))});
     }
 
     DEFINE_PROPS_STRUCT(
         SampleSeq2Props,
         key,            std::optional<std::string>,
+        path,           Required<std::string>,
+        seq,            Required<std::vector<ValueTimeSeqStep>>,
+        duration,       Required<js::Number>,
         stretch,        std::optional<js::Number>,
         shift,          std::optional<js::Number>
     )
 
     static NodeRepr sampleseq2(
-        std::string path,
-        js::Number duration,
-        std::vector<ValueTimeSeqStep> seq,
         SampleSeq2Props props,
         ElemNode time
     ) {
-        js::Object jsProps = props.takeJsObject();
-        jsProps.insert({"path", std::move(path)});
-        jsProps.insert({"seq", takeValueTimeSeq(seq)});
-        jsProps.insert({"duration", duration});
-        return SymbolicGraph::createNode("sampleseq2", std::move(jsProps),
+        return SymbolicGraph::createNode("sampleseq2", props.takeJsObject(),
             {resolve(std::move(time))});
     }
 
@@ -297,25 +263,23 @@ namespace elem::lib {
 
     DEFINE_PROPS_STRUCT(
         DelayProps,
-        key,        std::optional<std::string>
+        key,        std::optional<std::string>,
+        size,       Required<js::Number>
     )
 
-    static NodeRepr delay(js::Number size, DelayProps props, ElemNode len, ElemNode fb, ElemNode x) {
-        js::Object jsProps = props.takeJsObject();
-        jsProps.insert({"size", size});
-        return SymbolicGraph::createNode("delay", std::move(jsProps),
+    static NodeRepr delay(DelayProps props, ElemNode len, ElemNode fb, ElemNode x) {
+        return SymbolicGraph::createNode("delay", props.takeJsObject(),
             resolve({std::move(len), std::move(fb), std::move(x)}));
     }
 
     DEFINE_PROPS_STRUCT(
         SDelayProps,
-        key,        std::optional<std::string>
+        key,        std::optional<std::string>,
+        size,       Required<js::Number>
     )
 
-    static NodeRepr sdelay(js::Number size, SDelayProps props, ElemNode x) {
-        js::Object jsProps = props.takeJsObject();
-        jsProps.insert({"size", size});
-        return SymbolicGraph::createNode("sdelay", std::move(jsProps),
+    static NodeRepr sdelay(SDelayProps props, ElemNode x) {
+        return SymbolicGraph::createNode("sdelay", props.takeJsObject(),
             {resolve(std::move(x))});
     }
 
@@ -375,19 +339,16 @@ namespace elem::lib {
 
     DEFINE_PROPS_STRUCT(
         TapProps,
-        key,        std::optional<std::string>
+        key,        std::optional<std::string>,
+        name,       Required<std::string>
     )
 
-    static NodeRepr tapIn(std::string name, TapProps props) {
-        js::Object jsProps = props.takeJsObject();
-        jsProps.insert({"name", std::move(name)});
-        return SymbolicGraph::createNode("tapIn", std::move(jsProps), {});
+    static NodeRepr tapIn(TapProps props) {
+        return SymbolicGraph::createNode("tapIn", props.takeJsObject(), {});
     }
 
-    static NodeRepr tapOut(std::string name, TapProps props, ElemNode x) {
-        js::Object jsProps = props.takeJsObject();
-        jsProps.insert({"name", std::move(name)});
-        return SymbolicGraph::createNode("tapOut", std::move(jsProps), {resolve(std::move(x))});
+    static NodeRepr tapOut(TapProps props, ElemNode x) {
+        return SymbolicGraph::createNode("tapOut", props.takeJsObject(), {resolve(std::move(x))});
     }
 
     DEFINE_PROPS_STRUCT(
