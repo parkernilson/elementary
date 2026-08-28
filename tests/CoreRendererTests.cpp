@@ -53,3 +53,24 @@ TEST(NativeRendererSnapshotTests, DistinguishByProps) {
     EXPECT_EQ(result.propsWritten, 12);
     EXPECT_EQ(result.result, elem::ReturnCode::Ok());
 }
+
+TEST(NativeRendererSnapshotTests, MultiChannelBasics) {
+    const auto runtime = std::make_shared<elem::Runtime<float>>(44100.0, 512);
+    elem::Renderer<float> renderer(runtime);
+
+    // Run the same thing in two channels; we expect structural sharing except for the root nodes.
+    const auto result = renderer.renderGraph({
+        elem::lib::cycle(440.0),
+        elem::lib::cycle(440.0),
+    });
+
+    elem::test::verifyGraphSnapshot(
+        "MultiChannelBasics",
+        elem::js::serialize(elem::js::Value(runtime->snapshot()))
+    );
+
+    EXPECT_EQ(result.nodesAdded, 7);
+    EXPECT_EQ(result.edgesAdded, 6);
+    EXPECT_EQ(result.propsWritten, 8);
+    EXPECT_EQ(result.result, elem::ReturnCode::Ok());
+}
