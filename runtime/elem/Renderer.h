@@ -69,7 +69,7 @@ namespace elem {
 
     struct NodeRef {
         std::shared_ptr<SymbolicGraphNode> node;
-        std::function<void(js::Object newProps)> setter;
+        std::function<RenderResult(js::Object newProps)> setter;
     };
 
     template<typename FloatType>
@@ -124,7 +124,7 @@ namespace elem {
                 batch.setProperty.emplace_back(makeSetPropertyInstruction(node.hash, key, value));
             }
             for (const auto &child: node.children) {
-                batch.appendChild.emplace_back(makeAppendChildInstruction(node.hash, child->hash, node.outputChannel));
+                batch.appendChild.emplace_back(makeAppendChildInstruction(node.hash, child->hash, child->outputChannel));
             }
         }
     }
@@ -208,19 +208,29 @@ namespace elem {
 
         std::weak_ptr<Runtime<FloatType>> wRuntime = mRuntime;
 
-        auto setProperty = [hash = node->hash, wRuntime](const js::Object& newProps) {
+        auto setProperty = [hash = node->hash, wRuntime](const js::Object& newProps) -> RenderResult {
+            RenderResult stats;
+
             const auto& runtime = wRuntime.lock();
             if (runtime == nullptr) {
-                // TODO: Return an error code or throw an error or something
-                return;
+                stats.result = ReturnCode::NodeNotFound();
+                return stats;
             }
 
-            if (const auto* existing = runtime->findNode(hash); existing != nullptr) {
-                InstructionBatch instructions;
-                updateNodeProps(hash, existing->getProperties(), newProps, instructions);
-                instructions.commitUpdates.emplace_back(makeCommitUpdatesInstruction());
-                runtime->applyInstructions(instructions);
+            const auto* existing = runtime->findNode(hash);
+            if (existing == nullptr) {
+                stats.result = ReturnCode::NodeNotFound();
+                return stats;
             }
+
+            InstructionBatch instructions;
+            updateNodeProps(hash, existing->getProperties(), newProps, instructions);
+            stats.propsWritten = static_cast<int32_t>(instructions.setProperty.size());
+
+            instructions.commitUpdates.emplace_back(makeCommitUpdatesInstruction());
+            stats.result = runtime->applyInstructions(instructions.takeBatchedInstructions());
+
+            return stats;
         };
 
         return NodeRef{
