@@ -45,7 +45,11 @@ namespace elem {
             std::vector<NodeId> childHashes;
             childHashes.reserve(children.size());
             for (const auto &child: children) {
-                childHashes.push_back(child->hash);
+                // A node's hash must depend not just on each child's hash, but also on the
+                // outputChannel being addressed on that child. Otherwise two nodes referencing
+                // different outputs of the same multi-channel child would hash identically,
+                // even though they represent different signal paths. Matches NodeRepr.res.
+                childHashes.push_back(HashUtils::mixNumber(child->hash, child->outputChannel));
             }
 
             return std::make_shared<SymbolicGraphNode>(
