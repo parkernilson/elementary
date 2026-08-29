@@ -52,8 +52,8 @@ void audioCallback(ma_device* pDevice, void* pOutput, const void* /* pInput */, 
 {
     auto* proxy = static_cast<DeviceProxy*>(pDevice->pUserData);
 
-    auto numChannels = static_cast<size_t>(pDevice->playback.channels);
-    auto numFrames = static_cast<size_t>(frameCount);
+    const auto numChannels = static_cast<size_t>(pDevice->playback.channels);
+    const auto numFrames = static_cast<size_t>(frameCount);
 
     proxy->process(static_cast<float*>(pOutput), numChannels, numFrames);
 }
