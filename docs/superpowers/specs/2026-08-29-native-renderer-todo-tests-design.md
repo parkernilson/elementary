@@ -84,9 +84,9 @@ with:
 ```
 // TODO: Create a test that exercises a custom node
 ```
-Leave `// TODO: use gc() in tests (...)` — the new GC test addresses the gc()
-usage part; leaving it is redundant, so this TODO is removed once test 4 is
-added since it directly answers the question the TODO was asking.
+The `// TODO: use gc() in tests (...)` TODO was removed—the new GC test directly
+addresses what that TODO was asking for by demonstrating gc() usage in a
+realistic scenario.
 
 ## Snapshot fixtures
 

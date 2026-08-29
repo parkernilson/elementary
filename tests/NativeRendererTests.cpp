@@ -516,8 +516,6 @@ TEST(NativeRendererSnapshotTests, AddingMiddleNodeRedrawsOnlyParents) {
     EXPECT_EQ(result2.result, elem::ReturnCode::Ok());
 }
 
-// TODO: Create a test that exercises a custom node
-
 TEST(NativeRendererSnapshotTests, GcCleansUpUnusedNodes) {
     const auto runtime = std::make_shared<elem::Runtime<float>>(44100.0, 512);
     elem::Renderer<float> renderer(runtime);
@@ -534,6 +532,7 @@ TEST(NativeRendererSnapshotTests, GcCleansUpUnusedNodes) {
 
     const auto result1 = renderer.renderGraph({renderKeyedVoice("hi", 440)});
     ASSERT_EQ(result1.result, elem::ReturnCode::Ok());
+    // Process a block first so the root actually fades in, mirroring a live audio callback—this is what makes the fade-out observable below.
     processBlock();
 
     // Switch to a different keyed voice; "hi"'s root starts fading out but
@@ -585,3 +584,5 @@ TEST(NativeRendererSnapshotTests, GcCleansUpUnusedNodes) {
     EXPECT_FALSE(foundFreq440);
     EXPECT_TRUE(foundFreq880);
 }
+
+// TODO: Create a test that exercises a custom node
