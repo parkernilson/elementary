@@ -205,3 +205,36 @@ TEST(NativeRendererSnapshotTests, SwitchAndSwitchBack) {
     EXPECT_EQ(result3.propsWritten, 0);
     EXPECT_EQ(result3.result, elem::ReturnCode::Ok());
 }
+
+TEST(NativeRendererSnapshotTests, RefSetterUpdatesPropsWithoutRecreatingTree) {
+    const auto runtime = std::make_shared<elem::Runtime<float>>(44100.0, 512);
+    elem::Renderer<float> renderer(runtime);
+
+    // Sine tone with a frequency set by ref.
+    auto ref = renderer.createRef("const", elem::js::Object{{"value", 440.0}}, {});
+
+    const auto result1 = renderer.renderGraph({
+        elem::lib::sin(elem::lib::mul({
+            elem::lib::constant(2.0 * elem::lib::PI<float>),
+            elem::lib::phasor(elem::lib::ElemNode(ref.node)),
+        }))
+    });
+
+    EXPECT_EQ(result1.nodesAdded, 6);
+    EXPECT_EQ(result1.edgesAdded, 5);
+    EXPECT_EQ(result1.propsWritten, 5);
+    EXPECT_EQ(result1.result, elem::ReturnCode::Ok());
+
+    // Using our ref setter: we expect a single prop update, no structural change.
+    const auto result2 = ref.setter(elem::js::Object{{"value", 550.0}});
+
+    elem::test::verifyGraphSnapshot(
+        "RefSetterUpdatesPropsWithoutRecreatingTree",
+        elem::js::serialize(elem::js::Value(runtime->snapshot()))
+    );
+
+    EXPECT_EQ(result2.nodesAdded, 0);
+    EXPECT_EQ(result2.edgesAdded, 0);
+    EXPECT_EQ(result2.propsWritten, 1);
+    EXPECT_EQ(result2.result, elem::ReturnCode::Ok());
+}
