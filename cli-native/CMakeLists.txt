@@ -28,3 +28,7 @@ if(UNIX AND NOT APPLE)
     Threads::Threads
     ${CMAKE_DL_LIBS})
 endif()
+
+add_executable(elembench-native BenchmarkMain.cpp)
+
+target_link_libraries(elembench-native PRIVATE elemcli_native_graph)
