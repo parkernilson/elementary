@@ -4,9 +4,9 @@
 #include <type_traits>
 #include <utility>
 
-#include "elem/SymbolicGraph.h"
-#include "elem/lib/NodeUtils.h"
-#include "elem/lib/Props.h"
+#include "../SymbolicGraph.h"
+#include "NodeUtils.h"
+#include "Props.h"
 
 namespace elem::lib {
 

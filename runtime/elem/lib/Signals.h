@@ -1,8 +1,8 @@
 #pragma once
 
-#include "elem/lib/Core.h"
-#include "elem/lib/Math.h"
-#include "elem/lib/NodeUtils.h"
+#include "Core.h"
+#include "Math.h"
+#include "NodeUtils.h"
 
 namespace elem::lib {
     static NodeRepr ms2samps(ElemNode t) {

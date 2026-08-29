@@ -6,7 +6,7 @@
 #include <utility>
 #include <vector>
 
-#include "elem/Value.h"
+#include "../Value.h"
 
 namespace elem::lib {
     // Wraps a field type to make it mandatory in a DEFINE_PROPS_STRUCT: omitting

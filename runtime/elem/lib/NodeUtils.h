@@ -1,8 +1,8 @@
 #pragma once
 #include <variant>
 
-#include "elem/SymbolicGraph.h"
-#include "elem/Value.h"
+#include "../SymbolicGraph.h"
+#include "../Value.h"
 
 namespace elem::lib {
     using ElemNode = std::variant<std::shared_ptr<SymbolicGraphNode>, js::Number>;

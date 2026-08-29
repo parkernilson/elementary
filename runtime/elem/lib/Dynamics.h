@@ -1,9 +1,9 @@
 #pragma once
 
-#include "elem/lib/Core.h"
-#include "elem/lib/Math.h"
-#include "elem/lib/NodeUtils.h"
-#include "elem/lib/Signals.h"
+#include "Core.h"
+#include "Math.h"
+#include "NodeUtils.h"
+#include "Signals.h"
 
 namespace elem::lib {
     /**

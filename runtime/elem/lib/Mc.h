@@ -1,9 +1,9 @@
 #pragma once
 
-#include "elem/SymbolicGraph.h"
-#include "elem/lib/Core.h"
-#include "elem/lib/NodeUtils.h"
-#include "elem/lib/Props.h"
+#include "../SymbolicGraph.h"
+#include "Core.h"
+#include "NodeUtils.h"
+#include "Props.h"
 
 namespace elem::lib {
     DEFINE_PROPS_STRUCT(
