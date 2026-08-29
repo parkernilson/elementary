@@ -123,7 +123,7 @@ namespace elem::lib {
     DEFINE_PROPS_STRUCT(
         SeqProps,
         key,        std::optional<std::string>,
-        seq,        Required<js::NumberArray>,
+        seq,        Required<js::Array>, // TODO: Strongly type number arrays
         offset,     std::optional<js::Number>,
         hold,       std::optional<bool>,
         loop,       std::optional<bool>
@@ -145,7 +145,7 @@ namespace elem::lib {
         tickTime, Required<js::Number>
     )
 
-    using SparSeqLoop = std::variant<bool, js::NumberArray>;
+    using SparSeqLoop = std::variant<bool, js::Array>; // TODO: Strongly type number arrays
     DEFINE_PROPS_STRUCT(
         SparSeqProps,
         key,            std::optional<std::string>,

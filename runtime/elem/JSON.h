@@ -198,18 +198,6 @@ namespace js
         }
 
         template <typename Stream>
-        static void serialize (Stream& output, NumberArray const& v) {
-            output << '[';
-
-            for (size_t i = 0; i < v.size(); ++i) {
-                if (i != 0) output << ", ";
-                serialize(output, v[i]);
-            }
-
-            output << ']';
-        }
-
-        template <typename Stream>
         static void serialize (Stream& output, Float32Array const& v) {
             output << '[';
 
@@ -247,7 +235,6 @@ namespace js
             if (v.isNumber())       return (void) detail::serialize(output, (Number) v);
             if (v.isString())       return (void) detail::serialize(output, (String) v);
             if (v.isArray())        return (void) detail::serialize(output, v.getArray());
-            if (v.isNumberArray())  return (void) detail::serialize(output, v.getNumberArray());
             if (v.isFloat32Array()) return (void) detail::serialize(output, v.getFloat32Array());
             if (v.isObject())       return (void) detail::serialize(output, v.getObject());
 

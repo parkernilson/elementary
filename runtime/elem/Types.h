@@ -59,6 +59,7 @@ namespace elem
         static int InvalidPropertyValue()       { return 6; }
         static int InvariantViolation()         { return 7; }
         static int InvalidInstructionFormat()   { return 8; }
+        static int RuntimeExpired()             { return 9; }
 
         static std::string describe (int c) {
             switch (c) {
@@ -80,6 +81,8 @@ namespace elem
                     return "Invariant violation";
                 case 8:
                     return "Invalid instruction format";
+                case 9:
+                    return "Runtime expired";
                 default:
                     return "Return code not recognized";
             }

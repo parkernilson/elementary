@@ -18,7 +18,7 @@ namespace elem::lib {
         Required() = delete;
         Required(T v) : value(std::move(v)) {}
 
-        // Lets container-typed fields (e.g. Required<js::NumberArray> or
+        // Lets container-typed fields (e.g. Required<js::Array> or
         // Required<std::vector<SparSeqStep>>) be brace-initialized directly, e.g.
         // `.seq = {1.0, 2.0, 3.0}` or `.seq = {{.value=1.0, .tickTime=0.0}}`, instead of
         // needing `.seq = {{1.0, 2.0, 3.0}}` / naming the element type explicitly.

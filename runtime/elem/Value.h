@@ -28,7 +28,6 @@ namespace js
     // Representations of JavaScript Objects
     using Object = std::map<String, Value>;
     using Array = std::vector<Value>;
-    using NumberArray = std::vector<Number>;
     using Float32Array = std::vector<float>;
     using Function = std::function<Value(Array)>;
 
@@ -56,8 +55,6 @@ namespace js
         Value (String&& v)              : var(std::move(v)) {}
         Value (Array const& v)          : var(v) {}
         Value (Array&& v)               : var(std::move(v)) {}
-        Value (NumberArray const& v)    : var(v) {}
-        Value (NumberArray&& v)         : var(std::move(v)) {}
         Value (Float32Array const& v)   : var(v) {}
         Value (Float32Array&& v)        : var(std::move(v)) {}
         Value (Object const& v)         : var(v) {}
@@ -65,7 +62,7 @@ namespace js
         Value (Function const& v)       : var(v) {}
 
         // Converting constructor from any std::variant whose alternatives are each
-        // themselves convertible to Value (e.g. std::variant<Boolean, NumberArray>).
+        // themselves convertible to Value (e.g. std::variant<Boolean, Array>).
         template <typename... Ts, typename = std::enable_if_t<(std::is_constructible_v<Value, Ts const&> && ...)>>
         Value (std::variant<Ts...> const& v)
             : var(std::visit([](auto const& x) -> VarType { return Value(x).var; }, v)) {}
@@ -127,7 +124,6 @@ namespace js
         bool isNumber()         const { return std::holds_alternative<Number>(var); }
         bool isString()         const { return std::holds_alternative<String>(var); }
         bool isArray()          const { return std::holds_alternative<Array>(var); }
-        bool isNumberArray()    const { return std::holds_alternative<NumberArray>(var); }
         bool isFloat32Array()   const { return std::holds_alternative<Float32Array>(var); }
         bool isObject()         const { return std::holds_alternative<Object>(var); }
         bool isFunction()       const { return std::holds_alternative<Function>(var); }
@@ -141,13 +137,11 @@ namespace js
 
         // Object value getters
         Array const& getArray()                 const { return std::get<Array>(var); }
-        NumberArray const& getNumberArray()     const { return std::get<NumberArray>(var); }
         Float32Array const& getFloat32Array()   const { return std::get<Float32Array>(var); }
         Object const& getObject()               const { return std::get<Object>(var); }
         Function const& getFunction()           const { return std::get<Function>(var); }
 
         Array& getArray()                   { return std::get<Array>(var); }
-        NumberArray& getNumberArray()       { return std::get<NumberArray>(var); }
         Float32Array& getFloat32Array()     { return std::get<Float32Array>(var); }
         Object& getObject()                 { return std::get<Object>(var); }
         Function& getFunction()             { return std::get<Function>(var); }
@@ -184,24 +178,6 @@ namespace js
                     ss << a[i].toString() << ", ";
 
                 if (a.size() > 3)
-                {
-                    ss << "...]";
-                    return ss.str();
-                }
-
-                auto s = ss.str();
-                return s.substr(0, s.size() - 2) + "]";
-            }
-            if (isNumberArray())
-            {
-                auto& na = getNumberArray();
-                std::stringstream ss;
-                ss << "[";
-
-                for (size_t i = 0; i < std::min((size_t) 3, na.size()); ++i)
-                    ss << std::to_string(na[i]) << ", ";
-
-                if (na.size() > 3)
                 {
                     ss << "...]";
                     return ss.str();
@@ -258,7 +234,6 @@ namespace js
             String,
             Object,
             Array,
-            NumberArray,
             Float32Array,
             Function>;
 

@@ -64,10 +64,31 @@
       {
         "destination": "0x465861e9",
         "outletChannel": 0.0
+      },
+      {
+        "destination": "0x68e1b6d4",
+        "outletChannel": 0.0
       }
     ],
     "props": {
       "_internal:numChildren": 1.0
+    }
+  },
+  "0x40b9a6f5": {
+    "inlets": [
+      {
+        "outletChannel": 0.0,
+        "source": "0x68e1b6d4"
+      }
+    ],
+    "kind": "root",
+    "outlets": [],
+    "props": {
+      "_internal:numChildren": 1.0,
+      "active": true,
+      "channel": 0.0,
+      "fadeInMs": 20.0,
+      "fadeOutMs": 20.0
     }
   },
   "0x465861e9": {
@@ -81,7 +102,7 @@
     "outlets": [],
     "props": {
       "_internal:numChildren": 1.0,
-      "active": true,
+      "active": false,
       "channel": 0.0,
       "fadeInMs": 20.0,
       "fadeOutMs": 20.0
@@ -98,6 +119,24 @@
     ],
     "props": {
       "value": 440.0
+    }
+  },
+  "0x68e1b6d4": {
+    "inlets": [
+      {
+        "outletChannel": 0.0,
+        "source": "0x3faa2928"
+      }
+    ],
+    "kind": "tanh",
+    "outlets": [
+      {
+        "destination": "0x40b9a6f5",
+        "outletChannel": 0.0
+      }
+    ],
+    "props": {
+      "_internal:numChildren": 1.0
     }
   }
 }
