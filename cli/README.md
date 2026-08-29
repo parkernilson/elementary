@@ -24,7 +24,7 @@ cd elementary
 mkdir build/
 cd build/
 
-# Configure the project
+# Choose your favorite CMake generator here
 cmake -G Xcode -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 ../
 
 # Build the binaries
