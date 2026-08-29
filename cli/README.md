@@ -25,7 +25,7 @@ mkdir build/
 cd build/
 
 # Configure the project
-cmake ../
+cmake -G Xcode -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 ../
 
 # Build the binaries
 cmake --build .
@@ -53,14 +53,3 @@ then be run with the command line to hear them:
 # directory structure
 ./build/cli/elemcli examples/dist/00_HelloSine.js
 ```
-
-## macOS notes
-
-`elemcli` vendors `miniaudio` from `third_party/miniaudio/miniaudio.h` (shared
-with `cli-native/`). Versions prior to 0.11.19 load Core Audio's underlying
-system libraries via `dlopen()` using relative framework paths (e.g.
-`CoreFoundation.framework/CoreFoundation`), which fail to resolve on current
-macOS versions and cause `miniaudio` to silently fall back to a no-op "Null"
-backend -- `elemcli` runs and reports no errors, but no audio plays. This is
-fixed as of miniaudio 0.11.19, which is what's currently vendored here, so this
-should work out of the box.
