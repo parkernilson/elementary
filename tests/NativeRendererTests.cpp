@@ -427,7 +427,35 @@ TEST(NativeRendererSnapshotTests, RendersComposedSynthVoiceGraph) {
     EXPECT_EQ(result.result, elem::ReturnCode::Ok());
 }
 
-// TODO: Changing props of a leaf node re-creates the whole tree
+TEST(NativeRendererSnapshotTests, ChangingLeafPropRecreatesWholeTree) {
+    const auto runtime = std::make_shared<elem::Runtime<float>>(44100.0, 512);
+    elem::Renderer<float> renderer(runtime);
+
+    auto buildGraph = [](double freq) {
+        return elem::lib::sin(elem::lib::mul({
+            2.0 * elem::lib::PI<float>,
+            elem::lib::phasor(freq),
+        }));
+    };
+
+    const auto result1 = renderer.renderGraph({buildGraph(440.0)});
+    ASSERT_EQ(result1.result, elem::ReturnCode::Ok());
+
+    // Second render changes the frequency literal feeding the phasor leaf. Since
+    // nothing here is keyed, the leaf's new hash cascades through every ancestor
+    // (phasor -> mul -> sin -> root), so we expect the whole chain recreated.
+    const auto result2 = renderer.renderGraph({buildGraph(441.0)});
+
+    elem::test::verifyGraphSnapshot(
+        "ChangingLeafPropRecreatesWholeTree",
+        elem::js::serialize(elem::js::Value(runtime->snapshot()))
+    );
+
+    EXPECT_EQ(result2.nodesAdded, 5);
+    EXPECT_EQ(result2.edgesAdded, 5);
+    EXPECT_EQ(result2.propsWritten, 4);
+    EXPECT_EQ(result2.result, elem::ReturnCode::Ok());
+}
 
 // TODO: Changing a node in the middle of the tree redraws only the parents of that node
 
