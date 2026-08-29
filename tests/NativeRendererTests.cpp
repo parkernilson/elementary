@@ -488,7 +488,33 @@ TEST(NativeRendererSnapshotTests, ChangingMiddleNodeRedrawsOnlyParents) {
     EXPECT_EQ(result2.result, elem::ReturnCode::Ok());
 }
 
-// TODO: Adding a node to the middle of the tree redraws only the parents of the node
+TEST(NativeRendererSnapshotTests, AddingMiddleNodeRedrawsOnlyParents) {
+    const auto runtime = std::make_shared<elem::Runtime<float>>(44100.0, 512);
+    elem::Renderer<float> renderer(runtime);
+
+    const auto result1 = renderer.renderGraph({
+        elem::lib::sin(elem::lib::phasor(440.0))
+    });
+    ASSERT_EQ(result1.result, elem::ReturnCode::Ok());
+
+    // Second render splices a new `mul` node in between `sin` and its child
+    // `phasor`. The phasor leaf is unchanged and should be found/shared; `mul`
+    // is newly created, and `sin`/root are recreated because their child's
+    // hash changed.
+    const auto result2 = renderer.renderGraph({
+        elem::lib::sin(elem::lib::mul({2.0, elem::lib::phasor(440.0)}))
+    });
+
+    elem::test::verifyGraphSnapshot(
+        "AddingMiddleNodeRedrawsOnlyParents",
+        elem::js::serialize(elem::js::Value(runtime->snapshot()))
+    );
+
+    EXPECT_EQ(result2.nodesAdded, 4);
+    EXPECT_EQ(result2.edgesAdded, 4);
+    EXPECT_EQ(result2.propsWritten, 4);
+    EXPECT_EQ(result2.result, elem::ReturnCode::Ok());
+}
 
 // TODO: Custom node tests
 // TODO: Custom node is created successfully
