@@ -100,7 +100,13 @@ int main()
         return 1;
     }
 
-    ma_device_start(&device);
+    result = ma_device_start(&device);
+
+    if (result != MA_SUCCESS) {
+        std::cout << "Failed to start the audio device! Exiting..." << std::endl;
+        ma_device_uninit(&device);
+        return 1;
+    }
 
     std::cout << "Press Enter to exit..." << std::endl;
     getchar();

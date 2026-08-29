@@ -26,3 +26,16 @@ enabled and no optimization, which makes benchmark timings meaningless.
 You can compare `elembench-native`'s output against `cli/elembench <bundled-js-file>`
 (see `cli/README.md` for how to build the JS bundle) to compare the native-construction
 and JS-driven graph paths.
+
+## macOS notes
+
+If `elemcli-native` builds and runs without errors but you don't hear any audio,
+see the "macOS notes" section in `cli/README.md` -- this project vendors the same
+`miniaudio.h`, so it hits the same silent fallback to the no-op "Null" backend on
+current macOS versions. The fix is the same:
+
+```bash
+export DYLD_FALLBACK_FRAMEWORK_PATH=/System/Library/Frameworks
+./build/elemcli-native
+```
+
