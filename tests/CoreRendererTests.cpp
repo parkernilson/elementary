@@ -172,3 +172,36 @@ TEST(NativeRendererSnapshotTests, StructuralEqualityWithValueChange) {
     EXPECT_EQ(result2.propsWritten, 1);
     EXPECT_EQ(result2.result, elem::ReturnCode::Ok());
 }
+
+// Testing here to ensure that root activation/deactivation works as expected across
+// renders, and that nodes are not garbage collected just because they became inactive.
+TEST(NativeRendererSnapshotTests, SwitchAndSwitchBack) {
+    const auto runtime = std::make_shared<elem::Runtime<float>>(44100.0, 512);
+    elem::Renderer<float> renderer(runtime);
+
+    const auto result1 = renderer.renderGraph({renderKeyedVoice("hi", 440)});
+    EXPECT_EQ(result1.nodesAdded, 6);
+    EXPECT_EQ(result1.edgesAdded, 5);
+    EXPECT_EQ(result1.propsWritten, 6);
+    EXPECT_EQ(result1.result, elem::ReturnCode::Ok());
+
+    const auto result2 = renderer.renderGraph({renderKeyedVoice("bye", 880)});
+    EXPECT_EQ(result2.nodesAdded, 5);
+    EXPECT_EQ(result2.edgesAdded, 5);
+    EXPECT_EQ(result2.propsWritten, 5);
+    EXPECT_EQ(result2.result, elem::ReturnCode::Ok());
+
+    // Third render switches back to A. We expect this to be a full no-op: A's subtree
+    // was never garbage collected, so nothing new needs to be created or written.
+    const auto result3 = renderer.renderGraph({renderKeyedVoice("hi", 440)});
+
+    elem::test::verifyGraphSnapshot(
+        "SwitchAndSwitchBack",
+        elem::js::serialize(elem::js::Value(runtime->snapshot()))
+    );
+
+    EXPECT_EQ(result3.nodesAdded, 0);
+    EXPECT_EQ(result3.edgesAdded, 0);
+    EXPECT_EQ(result3.propsWritten, 0);
+    EXPECT_EQ(result3.result, elem::ReturnCode::Ok());
+}
