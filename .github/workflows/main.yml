@@ -45,7 +45,7 @@ jobs:
           set -x
           set -e
 
-          # Run the native renderer tests
+          # Run the native tests
           pushd ./build/native/
           ctest -C Release --output-on-failure
           popd
