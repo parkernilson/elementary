@@ -3,7 +3,6 @@
 
 #include "elem/Renderer.h"
 #include "elem/Runtime.h"
-#include "elem/SymbolicGraph.h"
 
 #include "GraphSnapshotTestUtils.h"
 #include "elem/lib/Core.h"
@@ -76,15 +75,10 @@ TEST(NativeRendererSnapshotTests, HashingComposedSynthVoiceGraph) {
         );
     };
 
-    // Built directly (not via elem::lib::seq()) because elem::lib::seq()'s SeqProps.seq field
-    // is Required<js::NumberArray>, which serializes to a js::Value holding the NumberArray
-    // variant -- but the native SequenceNode::setProperty's "seq" handler requires
-    // val.isArray() (the Array-of-Value variant), so elem::lib::seq()'s "seq" prop is rejected
-    // at runtime with InvalidPropertyType. This is a pre-existing Core.h bug, out of scope here.
-    auto seqNode = elem::SymbolicGraph::createNode(
-        "seq",
-        elem::js::Object{{"seq", elem::js::Array(arp.begin(), arp.end())}, {"hold", true}},
-        elem::lib::resolve({train, 0.0})
+    auto seqNode = elem::lib::seq(
+        elem::lib::SeqProps{.seq = elem::js::Array(arp.begin(), arp.end()), .hold = true},
+        train,
+        0.0
     );
 
     auto out = elem::lib::mul({0.25, filt(synthVoice(seqNode))});
