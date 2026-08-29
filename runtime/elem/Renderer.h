@@ -214,7 +214,7 @@ namespace elem {
 
             const auto& runtime = wRuntime.lock();
             if (runtime == nullptr) {
-                stats.result = ReturnCode::NodeNotFound();
+                stats.result = ReturnCode::RuntimeExpired();
                 return stats;
             }
 

@@ -8,7 +8,7 @@
 #include "Value.h"
 
 namespace elem {
-    using OutputChannel = uint32_t;
+    using OutputChannel = int32_t;
 
     struct SymbolicGraphNodeShallow {
         NodeId hash;
@@ -34,21 +34,15 @@ namespace elem {
     };
 
     namespace SymbolicGraph {
-
-        // TODO: I think we probably don't need a createRef function (or if we do, it could just call
-        // createNode under the hood), we just need to set "key" on the props, and then provide a way to
-        // setProperty nodeKey, propKey, propValue from the client.
-        // Can we assume that props.key will always override the hashing? Is that an assumption we can make?
-
         static std::shared_ptr<SymbolicGraphNode> createNode(std::string kind, js::Object props,
                                             std::vector<std::shared_ptr<SymbolicGraphNode>> children) {
             std::vector<NodeId> childHashes;
             childHashes.reserve(children.size());
             for (const auto &child: children) {
                 // A node's hash must depend not just on each child's hash, but also on the
-                // outputChannel being addressed on that child. Otherwise two nodes referencing
+                // outputChannel being addressed on that child. Otherwise, two nodes referencing
                 // different outputs of the same multi-channel child would hash identically,
-                // even though they represent different signal paths. Matches NodeRepr.res.
+                // even though they represent different signal paths.
                 childHashes.push_back(HashUtils::mixNumber(child->hash, child->outputChannel));
             }
 
@@ -74,8 +68,6 @@ namespace elem {
 
             return siblings;
         }
-
-        // TODO: createRef
     }
 }
 
