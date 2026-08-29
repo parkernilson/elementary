@@ -132,3 +132,43 @@ TEST(NativeRendererSnapshotTests, DistinguishedSubtreesByKey) {
     EXPECT_EQ(result.propsWritten, 12);
     EXPECT_EQ(result.result, elem::ReturnCode::Ok());
 }
+
+TEST(NativeRendererSnapshotTests, StructuralEqualityWithValueChange) {
+    const auto runtime = std::make_shared<elem::Runtime<float>>(44100.0, 512);
+    elem::Renderer<float> renderer(runtime);
+
+    const auto result1 = renderer.renderGraph({
+        elem::lib::add({
+            renderKeyedVoice("fq1", 440),
+            renderKeyedVoice("fq2", 440),
+            renderKeyedVoice("fq3", 440),
+            renderKeyedVoice("fq4", 440),
+        })
+    });
+
+    EXPECT_EQ(result1.nodesAdded, 19);
+    EXPECT_EQ(result1.edgesAdded, 21);
+    EXPECT_EQ(result1.propsWritten, 12);
+    EXPECT_EQ(result1.result, elem::ReturnCode::Ok());
+
+    // Change one of the keyed values; we expect structural equality (no new nodes or
+    // edges) since the node is found by its key, but the changed value is still written.
+    const auto result2 = renderer.renderGraph({
+        elem::lib::add({
+            renderKeyedVoice("fq1", 441),
+            renderKeyedVoice("fq2", 440),
+            renderKeyedVoice("fq3", 440),
+            renderKeyedVoice("fq4", 440),
+        })
+    });
+
+    elem::test::verifyGraphSnapshot(
+        "StructuralEqualityWithValueChange",
+        elem::js::serialize(elem::js::Value(runtime->snapshot()))
+    );
+
+    EXPECT_EQ(result2.nodesAdded, 0);
+    EXPECT_EQ(result2.edgesAdded, 0);
+    EXPECT_EQ(result2.propsWritten, 1);
+    EXPECT_EQ(result2.result, elem::ReturnCode::Ok());
+}
