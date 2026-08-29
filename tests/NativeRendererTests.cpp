@@ -516,8 +516,7 @@ TEST(NativeRendererSnapshotTests, AddingMiddleNodeRedrawsOnlyParents) {
     EXPECT_EQ(result2.result, elem::ReturnCode::Ok());
 }
 
-// TODO: Custom node tests
-// TODO: Custom node is created successfully
+// TODO: Create a test that exercises a custom node
 
 TEST(NativeRendererSnapshotTests, GcCleansUpUnusedNodes) {
     const auto runtime = std::make_shared<elem::Runtime<float>>(44100.0, 512);
