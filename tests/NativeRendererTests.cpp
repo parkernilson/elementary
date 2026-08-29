@@ -457,7 +457,36 @@ TEST(NativeRendererSnapshotTests, ChangingLeafPropRecreatesWholeTree) {
     EXPECT_EQ(result2.result, elem::ReturnCode::Ok());
 }
 
-// TODO: Changing a node in the middle of the tree redraws only the parents of that node
+TEST(NativeRendererSnapshotTests, ChangingMiddleNodeRedrawsOnlyParents) {
+    const auto runtime = std::make_shared<elem::Runtime<float>>(44100.0, 512);
+    elem::Renderer<float> renderer(runtime);
+
+    auto buildGraph = [](double cutoff) {
+        return elem::lib::add({
+            elem::lib::lowpass(cutoff, 1.0, elem::lib::phasor(440.0)),
+            elem::lib::sin(elem::lib::phasor(220.0)),
+        });
+    };
+
+    const auto result1 = renderer.renderGraph({buildGraph(1000.0)});
+    ASSERT_EQ(result1.result, elem::ReturnCode::Ok());
+
+    // Second render changes the cutoff feeding the middle `lowpass` node. Its
+    // child (phasor(440)) and the unrelated sibling subtree (sin(phasor(220)))
+    // are unchanged and should be found/shared; only `lowpass` and its ancestors
+    // (add, root) should be recreated.
+    const auto result2 = renderer.renderGraph({buildGraph(500.0)});
+
+    elem::test::verifyGraphSnapshot(
+        "ChangingMiddleNodeRedrawsOnlyParents",
+        elem::js::serialize(elem::js::Value(runtime->snapshot()))
+    );
+
+    EXPECT_EQ(result2.nodesAdded, 4);
+    EXPECT_EQ(result2.edgesAdded, 6);
+    EXPECT_EQ(result2.propsWritten, 5);
+    EXPECT_EQ(result2.result, elem::ReturnCode::Ok());
+}
 
 // TODO: Adding a node to the middle of the tree redraws only the parents of the node
 
