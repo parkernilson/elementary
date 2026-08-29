@@ -20,6 +20,11 @@ void runBenchmark(std::string const& name) {
     auto renderStats = renderer.renderGraph(elem::lib::buildHelloSineGraph());
     std::cout << "Render result: " << renderStats.result << std::endl;
 
+    if (renderStats.result != elem::ReturnCode::Ok()) {
+        std::cerr << "Failed to render graph: " << elem::ReturnCode::describe(renderStats.result) << std::endl;
+        return;
+    }
+
     std::vector<std::vector<FloatType>> scratchBuffers;
     std::vector<FloatType*> scratchPointers;
 

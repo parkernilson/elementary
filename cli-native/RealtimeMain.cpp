@@ -19,6 +19,7 @@ struct DeviceProxy {
 
     void process(float* outputData, size_t numChannels, size_t numFrames)
     {
+        // We might hit this the first time around, but after that should be fine
         if (scratchData.size() < (numChannels * numFrames))
             scratchData.resize(numChannels * numFrames);
 
@@ -64,6 +65,8 @@ int main()
     ma_device_config deviceConfig;
     ma_device device;
 
+    // XXX: I don't see a way to ask miniaudio for a specific block size. Let's just allocate
+    // here for 1024 and resize in the first callback if we need to.
     std::unique_ptr<DeviceProxy> proxy = std::make_unique<DeviceProxy>(44100.0, 1024);
 
     deviceConfig = ma_device_config_init(ma_device_type_playback);
@@ -90,6 +93,12 @@ int main()
     std::cout << "Nodes added: " << stats.nodesAdded << std::endl;
     std::cout << "Edges added: " << stats.edgesAdded << std::endl;
     std::cout << "Props written: " << stats.propsWritten << std::endl;
+
+    if (stats.result != elem::ReturnCode::Ok()) {
+        std::cerr << "Failed to render graph: " << elem::ReturnCode::describe(stats.result) << std::endl;
+        ma_device_uninit(&device);
+        return 1;
+    }
 
     ma_device_start(&device);
 

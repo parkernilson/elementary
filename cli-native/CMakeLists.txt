@@ -32,3 +32,9 @@ endif()
 add_executable(elembench-native BenchmarkMain.cpp)
 
 target_link_libraries(elembench-native PRIVATE elemcli_native_graph)
+
+if(MSVC)
+  target_compile_options(elembench-native PRIVATE /W4)
+else()
+  target_compile_options(elembench-native PRIVATE -Wall -Wextra)
+endif()
