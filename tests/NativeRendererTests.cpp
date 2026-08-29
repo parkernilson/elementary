@@ -377,11 +377,23 @@ TEST(NativeRendererSnapshotTests, RendersComposedSynthVoiceGraph) {
 
     auto train = elem::lib::train(4.8);
 
-    std::vector<double> arpSteps = {0, 4, 7, 11, 12, 11, 7, 4};
-    std::vector<elem::js::Number> arp;
-    for (double step : arpSteps) {
-        arp.push_back(261.63 * 0.5 * std::pow(2.0, step / 12.0));
-    }
+    // These are the equal-tempered frequencies for arp steps {0, 4, 7, 11, 12, 11, 7, 4}
+    // relative to 261.63 * 0.5 Hz, i.e. 261.63 * 0.5 * pow(2.0, step / 12.0). They're
+    // hardcoded (rather than computed with std::pow at test time) because std::pow can
+    // round its last bit differently between Debug and Release builds, which changes the
+    // node's structural hash (see HashUtils::hashProps) and cascades into every ancestor
+    // node's ID, making this snapshot fail to match across build types despite the graph
+    // being logically identical.
+    std::vector<elem::js::Number> arp = {
+        130.815,
+        164.81657214199782,
+        196.0010402616231,
+        246.94583642691146,
+        261.63,
+        246.94583642691146,
+        196.0010402616231,
+        164.81657214199782,
+    };
 
     auto modulate = [](elem::lib::ElemNode x, elem::lib::ElemNode rate, elem::lib::ElemNode amt) {
         return elem::lib::add({x, elem::lib::mul({amt, elem::lib::cycle(rate)})});
