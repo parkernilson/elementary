@@ -8,9 +8,6 @@
 #include "Runtime.h"
 #include "SymbolicGraph.h"
 
-// TODO: We should create an elemcli-native target that uses the native renderer so that these files
-// are included in an actual compiled target, and to show what it looks like as an example.
-
 namespace elem {
     namespace JsInstructionType {
         static constexpr js::Number CREATE_NODE = static_cast<js::Number>(RuntimeInstructionType::CREATE_NODE);

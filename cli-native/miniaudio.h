@@ -1,3 +1,5 @@
+// NOTE: This is a deliberate vendored copy of cli/miniaudio.h, kept separate so that cli-native/
+// has no build dependency on cli/. If cli/miniaudio.h is upgraded, re-copy it here too.
 /*
 Audio playback and capture library. Choice of public domain or MIT-0. See license statements at the end of this file.
 miniaudio - v0.11.9 - 2022-04-20
