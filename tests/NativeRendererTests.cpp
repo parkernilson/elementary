@@ -519,4 +519,70 @@ TEST(NativeRendererSnapshotTests, AddingMiddleNodeRedrawsOnlyParents) {
 // TODO: Custom node tests
 // TODO: Custom node is created successfully
 
-// TODO: use gc() in tests (??? do we need to call gc() before each render to get proper snapshots?)
+TEST(NativeRendererSnapshotTests, GcCleansUpUnusedNodes) {
+    const auto runtime = std::make_shared<elem::Runtime<float>>(44100.0, 512);
+    elem::Renderer<float> renderer(runtime);
+
+    // A root node fades out over 20ms rather than disappearing instantly, and
+    // stays in Runtime::currentRoots (and therefore referenced by the live
+    // render sequence) until that fade settles -- so we drive the clock
+    // forward with real process() calls to let it finish.
+    auto processBlock = [&]() {
+        float outputBuffer[512] = {};
+        float* outputChannels[1] = {outputBuffer};
+        runtime->process(nullptr, 0, outputChannels, 1, 512, nullptr);
+    };
+
+    const auto result1 = renderer.renderGraph({renderKeyedVoice("hi", 440)});
+    ASSERT_EQ(result1.result, elem::ReturnCode::Ok());
+    processBlock();
+
+    // Switch to a different keyed voice; "hi"'s root starts fading out but
+    // remains active (and thus referenced) until its fade settles.
+    const auto result2 = renderer.renderGraph({renderKeyedVoice("bye", 880)});
+    ASSERT_EQ(result2.result, elem::ReturnCode::Ok());
+
+    // 44100 * 0.02s = 882 samples for the 20ms fade-out; two 512-sample
+    // blocks comfortably covers that.
+    processBlock();
+    processBlock();
+
+    // Re-render "bye" (structurally unchanged). Since "hi" is still sitting
+    // in currentRoots, this root set still differs from currentRoots, so the
+    // renderer re-emits an activate-roots instruction; now that "hi"'s fade
+    // has settled, it's finally dropped from currentRoots and excluded from
+    // the next render sequence.
+    const auto result3 = renderer.renderGraph({renderKeyedVoice("bye", 880)});
+    ASSERT_EQ(result3.result, elem::ReturnCode::Ok());
+
+    // Swap the new (hi-excluding) render sequence into place so the old one
+    // -- still holding "hi"'s subtree -- is no longer referenced.
+    processBlock();
+
+    const auto snapshotJsonBeforeGc = elem::js::serialize(elem::js::Value(runtime->snapshot()));
+    const auto snapshotBeforeGc = nlohmann::json::parse(snapshotJsonBeforeGc);
+
+    const auto prunedNodeIds = runtime->gc();
+    EXPECT_FALSE(prunedNodeIds.empty());
+
+    const auto snapshotJsonAfterGc = elem::js::serialize(elem::js::Value(runtime->snapshot()));
+    const auto snapshotAfterGc = nlohmann::json::parse(snapshotJsonAfterGc);
+
+    elem::test::verifyGraphSnapshot("GcCleansUpUnusedNodes", snapshotJsonAfterGc);
+
+    EXPECT_EQ(snapshotAfterGc.size(), snapshotBeforeGc.size() - prunedNodeIds.size());
+
+    // The "hi" voice's frequency constant (440) should be gone; the still-active
+    // "bye" voice's constant (880) should remain.
+    bool foundFreq440 = false;
+    bool foundFreq880 = false;
+    for (auto const& [nodeId, node] : snapshotAfterGc.items()) {
+        if (node.value("kind", "") == "const") {
+            auto const value = node.at("props").value("value", 0.0);
+            if (value == 440.0) foundFreq440 = true;
+            if (value == 880.0) foundFreq880 = true;
+        }
+    }
+    EXPECT_FALSE(foundFreq440);
+    EXPECT_TRUE(foundFreq880);
+}
