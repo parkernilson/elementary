@@ -17,3 +17,14 @@ if(MSVC)
 else()
   target_compile_options(elemcli_native_graph PRIVATE -Wall -Wextra)
 endif()
+
+add_executable(elemcli-native RealtimeMain.cpp)
+
+target_link_libraries(elemcli-native PRIVATE elemcli_native_graph)
+
+if(UNIX AND NOT APPLE)
+  find_package(Threads REQUIRED)
+  target_link_libraries(elemcli-native PRIVATE
+    Threads::Threads
+    ${CMAKE_DL_LIBS})
+endif()
