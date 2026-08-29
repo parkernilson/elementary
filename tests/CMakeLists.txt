@@ -4,7 +4,7 @@ project(native_renderer_tests VERSION 0.11.5)
 set(INSTALL_GTEST OFF CACHE BOOL "" FORCE)
 add_subdirectory(third-party/googletest EXCLUDE_FROM_ALL)
 
-add_executable(native-renderer-tests EXCLUDE_FROM_ALL
+add_executable(native-renderer-tests
     NativeRendererTests.cpp
 )
 
