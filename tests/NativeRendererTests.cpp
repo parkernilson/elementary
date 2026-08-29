@@ -50,28 +50,7 @@ TEST(NativeRendererSnapshotTests, NumericLiteralIsResolvedToConstantNode) {
     EXPECT_EQ(result.result, elem::ReturnCode::Ok());
 }
 
-// TODO: Render a graph with multiple roots
-
-// TODO: Adding a node to the top only adds 1 node, 1 appendChild, and 1 setProperty
-
 // TODO: Changing props of a leaf node re-creates the whole tree
-
-// TODO: Changing props of a leaf node with a key prop only adds 1 setProperty instruction per prop changed
-
-// TODO: setter returned by createRef updates the props correctly (only sends one setProperty instruction per prop changed)
-// - new value that doesn't exist in old props
-// - new value that exists in old props but is different in new props (primitive and also Array/Object shallowEqual)
-//   - need to make sure that we do a shallow compare, i.e. compare the elements of the Array/Object by value. I think
-//     this is what c++ does automatically when comparing recursive sub structures
-
-// TODO: Render a tree with Multi-Channel nodes (via unwrap)
-/*
- * I think the way that multi-channel nodes work is that their hash is the same because outputChannel is not factored
- * into the hash (or if you give it a key then the key is the hash). But then, the parents of the mc node address diff
- * outputChannels, and the outputChannel is factored into the child hashes... (why does this matter? I think it means
- * that if a parent is changed to address a different outputChannel it would change the parent hash and cause it to be
- * re-created. That is probably why it matters).
- */
 
 // TODO: Changing a node in the middle of the tree redraws only the parents of that node
 

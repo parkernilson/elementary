@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <chrono>
+#include <string>
 #include <unordered_set>
 
 #include "Runtime.h"
@@ -203,7 +204,7 @@ namespace elem {
 
     template<typename FloatType>
     NodeRef Renderer<FloatType>::createRef(std::string kind, js::Object props, std::vector<std::shared_ptr<SymbolicGraphNode>> children) {
-        if (props.count("key") < 0) props["key"] = "__refKey:" + nextRefId++;
+        props["key"] = "__refKey:" + std::to_string(nextRefId++);
         auto node = SymbolicGraph::createNode(std::move(kind), std::move(props), std::move(children));
 
         std::weak_ptr<Runtime<FloatType>> wRuntime = mRuntime;

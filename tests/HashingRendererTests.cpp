@@ -76,8 +76,11 @@ TEST(NativeRendererSnapshotTests, HashingComposedSynthVoiceGraph) {
         );
     };
 
-    // Built directly (not via elem::lib::seq()) to work around the Core.h bug described
-    // above: the native SequenceNode requires a js::Array for "seq", not a NumberArray.
+    // Built directly (not via elem::lib::seq()) because elem::lib::seq()'s SeqProps.seq field
+    // is Required<js::NumberArray>, which serializes to a js::Value holding the NumberArray
+    // variant -- but the native SequenceNode::setProperty's "seq" handler requires
+    // val.isArray() (the Array-of-Value variant), so elem::lib::seq()'s "seq" prop is rejected
+    // at runtime with InvalidPropertyType. This is a pre-existing Core.h bug, out of scope here.
     auto seqNode = elem::SymbolicGraph::createNode(
         "seq",
         elem::js::Object{{"seq", elem::js::Array(arp.begin(), arp.end())}, {"hold", true}},

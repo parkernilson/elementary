@@ -173,8 +173,9 @@ TEST(NativeRendererSnapshotTests, StructuralEqualityWithValueChange) {
     EXPECT_EQ(result2.result, elem::ReturnCode::Ok());
 }
 
-// Testing here to ensure that root activation/deactivation works as expected across
-// renders, and that nodes are not garbage collected just because they became inactive.
+// Verifies that switching away from and back to a previously-rendered voice is a
+// no-op: the voice's subtree persists in the runtime (never garbage collected) even
+// after a different voice becomes active, so the third render finds it unchanged.
 TEST(NativeRendererSnapshotTests, SwitchAndSwitchBack) {
     const auto runtime = std::make_shared<elem::Runtime<float>>(44100.0, 512);
     elem::Renderer<float> renderer(runtime);
@@ -222,7 +223,7 @@ TEST(NativeRendererSnapshotTests, RefSetterUpdatesPropsWithoutRecreatingTree) {
 
     EXPECT_EQ(result1.nodesAdded, 6);
     EXPECT_EQ(result1.edgesAdded, 5);
-    EXPECT_EQ(result1.propsWritten, 5);
+    EXPECT_EQ(result1.propsWritten, 6);
     EXPECT_EQ(result1.result, elem::ReturnCode::Ok());
 
     // Using our ref setter: we expect a single prop update, no structural change.
@@ -274,13 +275,32 @@ TEST(NativeRendererSnapshotTests, McHashingReflectsOutputChannelFromChildNodes) 
     // of the same mc.sampleseq2 child), so the connection to the second output channel
     // survives in the rendered graph.
     const auto snapshot = nlohmann::json::parse(snapshotJson);
-    bool foundChannelOneInlet = false;
+
+    std::string sampleseq2NodeId;
+    for (auto const& [nodeId, node] : snapshot.items()) {
+        if (node.value("kind", "") == "mc.sampleseq2") {
+            sampleseq2NodeId = nodeId;
+        }
+    }
+    ASSERT_FALSE(sampleseq2NodeId.empty());
+
+    // Check both channel 0 and channel 1 connections out of the mc.sampleseq2 node
+    // independently. If the two `mul` nodes above were to collapse into a single node
+    // (the bug this test guards against), one of these two connections is overwritten
+    // and disappears from the graph entirely -- so checking only one channel in
+    // isolation isn't enough to catch the regression.
+    bool foundChannelZeroInletFromSampleSeq2 = false;
+    bool foundChannelOneInletFromSampleSeq2 = false;
     for (auto const& [nodeId, node] : snapshot.items()) {
         for (auto const& inlet : node.value("inlets", nlohmann::json::array())) {
-            if (static_cast<int>(inlet.value("outletChannel", 0.0)) == 1) {
-                foundChannelOneInlet = true;
+            if (inlet.value("source", std::string()) == sampleseq2NodeId) {
+                auto const channel = static_cast<int>(inlet.value("outletChannel", 0.0));
+
+                if (channel == 0) foundChannelZeroInletFromSampleSeq2 = true;
+                if (channel == 1) foundChannelOneInletFromSampleSeq2 = true;
             }
         }
     }
-    EXPECT_TRUE(foundChannelOneInlet);
+    EXPECT_TRUE(foundChannelZeroInletFromSampleSeq2);
+    EXPECT_TRUE(foundChannelOneInletFromSampleSeq2);
 }
