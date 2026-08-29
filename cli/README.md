@@ -24,8 +24,8 @@ cd elementary
 mkdir build/
 cd build/
 
-# Choose your favorite CMake generator here
-cmake -G Xcode -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 ../
+# Configure the project
+cmake ../
 
 # Build the binaries
 cmake --build .
@@ -51,38 +51,16 @@ then be run with the command line to hear them:
 ```bash
 # Your path to the elemcli binary might be different depending on your build
 # directory structure
-./build/cli/Debug/elemcli examples/dist/00_HelloSine.js
+./build/cli/elemcli examples/dist/00_HelloSine.js
 ```
 
 ## macOS notes
 
-If you generate the Xcode project (`cmake -G Xcode ..`) and build the whole
-`ALL_BUILD` scheme, you may run into code signing errors from targets other than
-`elemcli` (e.g. the benchmark or test targets). Build the `elemcli` target
-directly instead:
-
-```bash
-cmake --build . --target elemcli
-```
-
-If `elemcli` builds and runs without errors but you don't hear any audio, this is
-almost certainly because `miniaudio`'s Core Audio backend failed to load and it
-silently fell back to a no-op "Null" backend. `miniaudio.h` loads Core Audio's
-underlying system libraries at runtime via `dlopen()` using relative framework
-paths (e.g. `CoreFoundation.framework/CoreFoundation`), and on current macOS
-versions `dlopen`'s default search no longer checks `/System/Library/Frameworks`
-for a bare relative path like that. Because the Null backend reports success and
-runs the audio callback like a real device, this failure is silent -- no error is
-printed anywhere.
-
-Work around it by pointing `dlopen`'s fallback search path at the system
-frameworks directory before running the cli:
-
-```bash
-export DYLD_FALLBACK_FRAMEWORK_PATH=/System/Library/Frameworks
-./build/cli/Debug/elemcli examples/dist/00_HelloSine.js
-```
-
-You can confirm which backend actually got selected by rebuilding with
-`MA_DEBUG_OUTPUT` defined before the `MINIAUDIO_IMPLEMENTATION` include in
-`Realtime.cpp`, which logs each backend `miniaudio` attempts and which one wins.
+`elemcli` vendors `miniaudio` from `third_party/miniaudio/miniaudio.h` (shared
+with `cli-native/`). Versions prior to 0.11.19 load Core Audio's underlying
+system libraries via `dlopen()` using relative framework paths (e.g.
+`CoreFoundation.framework/CoreFoundation`), which fail to resolve on current
+macOS versions and cause `miniaudio` to silently fall back to a no-op "Null"
+backend -- `elemcli` runs and reports no errors, but no audio plays. This is
+fixed as of miniaudio 0.11.19, which is what's currently vendored here, so this
+should work out of the box.

@@ -29,13 +29,6 @@ and JS-driven graph paths.
 
 ## macOS notes
 
-If `elemcli-native` builds and runs without errors but you don't hear any audio,
-see the "macOS notes" section in `cli/README.md` -- this project vendors the same
-`miniaudio.h`, so it hits the same silent fallback to the no-op "Null" backend on
-current macOS versions. The fix is the same:
-
-```bash
-export DYLD_FALLBACK_FRAMEWORK_PATH=/System/Library/Frameworks
-./build/elemcli-native
-```
-
+`elemcli-native` shares the same vendored `miniaudio.h` as `cli/` (see
+`third_party/miniaudio/miniaudio.h`), so see the "macOS notes" section in
+`cli/README.md` for details on Core Audio backend loading.

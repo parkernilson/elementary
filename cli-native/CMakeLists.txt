@@ -4,7 +4,8 @@ project(cli-native VERSION 0.11.0)
 add_library(elemcli_native_graph STATIC HelloSine.cpp)
 
 target_include_directories(elemcli_native_graph PUBLIC
-  ${CMAKE_CURRENT_SOURCE_DIR})
+  ${CMAKE_CURRENT_SOURCE_DIR}
+  ${CMAKE_CURRENT_SOURCE_DIR}/../third_party/miniaudio)
 
 target_compile_features(elemcli_native_graph PUBLIC
   cxx_std_17)
