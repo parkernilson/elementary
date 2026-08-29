@@ -238,3 +238,49 @@ TEST(NativeRendererSnapshotTests, RefSetterUpdatesPropsWithoutRecreatingTree) {
     EXPECT_EQ(result2.propsWritten, 1);
     EXPECT_EQ(result2.result, elem::ReturnCode::Ok());
 }
+
+TEST(NativeRendererSnapshotTests, McHashingReflectsOutputChannelFromChildNodes) {
+    const auto runtime = std::make_shared<elem::Runtime<float>>(44100.0, 512);
+    runtime->addSharedResource("/v/path", std::make_unique<elem::AudioBufferResource>(2, 512));
+    elem::Renderer<float> renderer(runtime);
+
+    auto channels = elem::lib::sampleseq2(
+        elem::lib::MCSampleSeq2Props{
+            .path = std::string("/v/path"),
+            .seq = {{.value = 1.0, .time = 0.0}},
+            .duration = 2.0,
+        },
+        2.0,
+        1.0
+    );
+
+    std::vector<elem::lib::ElemNode> muls;
+    for (auto& channel : channels) {
+        muls.push_back(elem::lib::mul({0.5, elem::lib::ElemNode(channel)}));
+    }
+
+    const auto result = renderer.renderGraph({elem::lib::add(std::move(muls))});
+
+    const auto snapshotJson = elem::js::serialize(elem::js::Value(runtime->snapshot()));
+    elem::test::verifyGraphSnapshot("McHashingReflectsOutputChannelFromChildNodes", snapshotJson);
+
+    EXPECT_EQ(result.nodesAdded, 7);
+    EXPECT_EQ(result.edgesAdded, 8);
+    EXPECT_EQ(result.propsWritten, 8);
+    EXPECT_EQ(result.result, elem::ReturnCode::Ok());
+
+    // Demonstrates that both `mul` nodes above get visited/created independently during
+    // traversal (they have different hashes because they address different output channels
+    // of the same mc.sampleseq2 child), so the connection to the second output channel
+    // survives in the rendered graph.
+    const auto snapshot = nlohmann::json::parse(snapshotJson);
+    bool foundChannelOneInlet = false;
+    for (auto const& [nodeId, node] : snapshot.items()) {
+        for (auto const& inlet : node.value("inlets", nlohmann::json::array())) {
+            if (static_cast<int>(inlet.value("outletChannel", 0.0)) == 1) {
+                foundChannelOneInlet = true;
+            }
+        }
+    }
+    EXPECT_TRUE(foundChannelOneInlet);
+}
