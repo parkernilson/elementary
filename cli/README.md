@@ -51,5 +51,5 @@ then be run with the command line to hear them:
 ```bash
 # Your path to the elemcli binary might be different depending on your build
 # directory structure
-./build/cli/elemcli examples/dist/00_HelloSine.js
+./build/cli/Debug/elemcli examples/dist/00_HelloSine.js
 ```
