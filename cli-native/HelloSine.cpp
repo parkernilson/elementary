@@ -7,7 +7,7 @@ namespace elem::lib {
     std::vector<std::shared_ptr<elem::SymbolicGraphNode>> buildHelloSineGraph() {
         return {
             mul({0.3, cycle(440.0)}),
-            mul({0.3, cycle(441.0)}),
+            mul({0.3, cycle(440.0)}),
         };
     }
 }

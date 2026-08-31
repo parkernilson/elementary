@@ -85,7 +85,7 @@ int main()
         return 1;
     }
 
-    // Build and render the native graph before audio starts — no JS/QuickJS involved
+    // Build and render the graph before audio starts
     elem::Renderer<float> renderer(proxy->runtime);
     auto stats = renderer.renderGraph(elem::lib::buildHelloSineGraph());
 
