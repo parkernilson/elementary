@@ -8,8 +8,10 @@
 
 namespace benchmark {
     namespace {
-        constexpr auto MICROSECONDS_TO_BUILD_GRAPH = "microsecondsToBuildGraph";
+        constexpr auto MICROSECONDS_TO_BUILD_GRAPH = "microsecondsToBuildAudioGraph";
         constexpr auto MICROSECONDS_TO_RENDER_GRAPH = "microsecondsToRenderGraph";
+        constexpr auto BUILD_NEXT_GRAPH_FN = "buildNextAudioGraph";
+        constexpr auto RENDER_NEXT_GRAPH_FN = "renderNextAudioGraph";
     }
 
     template <typename FloatType>
@@ -107,8 +109,8 @@ namespace benchmark {
         (void) ctx->evaluate(inputFile);
 
         GraphBuildFn build = [ctx](size_t i) {
-            auto response = ctx->invoke("buildNextAudioGraph", static_cast<int64_t>(i));
-            if (!response.isObject()) throw std::invalid_argument("buildNextAudioGraph did not return an object");
+            auto response = ctx->invoke(BUILD_NEXT_GRAPH_FN, static_cast<int64_t>(i));
+            if (!response.isObject()) throw std::invalid_argument(std::string(BUILD_NEXT_GRAPH_FN) + " did not return an object");
             if (!response.hasObjectMember(MICROSECONDS_TO_BUILD_GRAPH)) throw std::invalid_argument("response did not have member: " + std::string(MICROSECONDS_TO_BUILD_GRAPH));
             if (!response[MICROSECONDS_TO_BUILD_GRAPH].isFloat64()) throw std::invalid_argument(std::string(MICROSECONDS_TO_BUILD_GRAPH) + " was not a float64");
 
@@ -119,8 +121,8 @@ namespace benchmark {
         };
 
         GraphRenderFn render = [ctx](size_t i) {
-            auto response = ctx->invoke("renderNextAudioGraph", static_cast<int64_t>(i));
-            if (!response.isObject()) throw std::invalid_argument("renderNextAudioGraph did not return an object");
+            auto response = ctx->invoke(RENDER_NEXT_GRAPH_FN, static_cast<int64_t>(i));
+            if (!response.isObject()) throw std::invalid_argument(std::string(RENDER_NEXT_GRAPH_FN) + " did not return an object");
             if (!response.hasObjectMember(MICROSECONDS_TO_RENDER_GRAPH)) throw std::invalid_argument("response did not have member: " + std::string(MICROSECONDS_TO_RENDER_GRAPH));
             if (!response[MICROSECONDS_TO_RENDER_GRAPH].isFloat64()) throw std::invalid_argument(std::string(MICROSECONDS_TO_RENDER_GRAPH) + " was not a float64");
 
