@@ -8,7 +8,7 @@ a concise demonstration of using Elementary's native renderer with the native en
 ## Building
 
 ```bash
-cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug
 cmake --build build --target elemcli-native
 ```
 
