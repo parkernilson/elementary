@@ -10,7 +10,6 @@
 #include <elem/Runtime.h>
 
 namespace benchmark {
-    // TODO: Name this better. Something like sine_wave_no_key
     std::pair<GraphBuildFn, GraphRenderFn> makeRenderSineNoKeyBenchmark(
         const std::shared_ptr<elem::Runtime<float>>& runtime);
 
