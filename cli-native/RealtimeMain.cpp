@@ -1,6 +1,5 @@
 #include <algorithm>
 #include <array>
-#include <cstring>
 #include <iostream>
 #include <memory>
 #include <vector>
@@ -85,23 +84,23 @@ void printGraphList()
 int main(int argc, char** argv)
 {
     std::string graphName;
+    std::vector<std::string> args(argv + 1, argv + argc);
 
-    for (int i = 1; i < argc; ++i) {
-        // TODO: why do we use stdcmp instead of == here?
-        if (std::strcmp(argv[i], "--help") == 0 || std::strcmp(argv[i], "-h") == 0) {
+    for (size_t i = 0; i < args.size(); ++i) {
+        if (args[i] == "--help" || args[i] == "-h") {
             printUsage(argv[0]);
             return 0;
-        } else if (std::strcmp(argv[i], "--list") == 0) {
+        } else if (args[i] == "--list") {
             printGraphList();
             return 0;
-        } else if (std::strcmp(argv[i], "--graph") == 0) {
-            if (i + 1 >= argc) {
+        } else if (args[i] == "--graph") {
+            if (i + 1 >= args.size()) {
                 std::cerr << "Error: --graph requires a graph name" << std::endl;
                 printUsage(argv[0]);
                 return 1;
             }
 
-            graphName = argv[++i];
+            graphName = args[++i];
         }
     }
 
