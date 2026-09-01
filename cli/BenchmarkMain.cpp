@@ -28,7 +28,7 @@ namespace {
     void runRendererJSBenchmark(std::string const& inputFileName) {
         auto runtime = std::make_shared<elem::Runtime<float>>(44100.0, 512);
         auto [build, render] = benchmark::makeJSGraphFns(runtime, inputFileName);
-        const benchmark::RendererBenchmarkScenario scenario("Renderer JS", std::move(build), std::move(render));
+        const benchmark::RendererBenchmarkScenario scenario("Renderer JS, " + inputFileName, std::move(build), std::move(render));
         scenario.runBenchmark();
     }
 
@@ -42,7 +42,7 @@ namespace {
 
         auto runtime = std::make_shared<elem::Runtime<float>>(44100.0, 512);
         auto [build, render] = it->second(runtime);
-        const benchmark::RendererBenchmarkScenario scenario("Renderer Native", std::move(build), std::move(render));
+        const benchmark::RendererBenchmarkScenario scenario("Renderer Native, " + scenarioName, std::move(build), std::move(render));
         scenario.runBenchmark();
     }
 
