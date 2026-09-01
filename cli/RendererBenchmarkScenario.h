@@ -43,11 +43,11 @@ namespace benchmark {
 
     template <typename FloatType>
     std::pair<GraphBuildFn, GraphRenderFn> makeNativeGraphFns(
-        std::shared_ptr<elem::Runtime<FloatType>> runtime,
+        const std::shared_ptr<elem::Runtime<FloatType>>& runtime,
         std::function<elem::lib::NodeRepr(size_t)> nextGraph);
 
     template <typename FloatType>
     std::pair<GraphBuildFn, GraphRenderFn> makeJSGraphFns(
-        std::shared_ptr<elem::Runtime<FloatType>> runtime,
-        std::string jsFileName);
+        const std::shared_ptr<elem::Runtime<FloatType>>& runtime,
+        const std::string& jsFileName);
 }
