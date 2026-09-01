@@ -22,9 +22,6 @@ namespace {
         runBenchmark<double>("Double", inputFileName, [](auto&) {});
     }
 
-    // The renderer benchmarks never touch Runtime::process (the realtime audio
-    // path, which is the only place FloatType actually matters), so these
-    // always run against elem::Runtime<float>.
     void runRendererJSBenchmark(std::string const& inputFileName) {
         auto runtime = std::make_shared<elem::Runtime<float>>(44100.0, 512);
         auto [build, render] = benchmark::makeJSGraphFns(runtime, inputFileName);

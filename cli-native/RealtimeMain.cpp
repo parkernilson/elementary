@@ -87,6 +87,7 @@ int main(int argc, char** argv)
     std::string graphName;
 
     for (int i = 1; i < argc; ++i) {
+        // TODO: why do we use stdcmp instead of == here?
         if (std::strcmp(argv[i], "--help") == 0 || std::strcmp(argv[i], "-h") == 0) {
             printUsage(argv[0]);
             return 0;
