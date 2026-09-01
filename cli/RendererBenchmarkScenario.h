@@ -41,11 +41,6 @@ namespace benchmark {
         GraphRenderFn mRenderGraph;
     };
 
-    // Renderer<FloatType> only uses FloatType to hold a shared_ptr<Runtime<FloatType>>;
-    // none of the graph-building/instruction logic we exercise here (applyInstructions,
-    // gc, findNode) depends on it. Since these benchmarks never touch Runtime::process
-    // (the part that actually cares about FloatType), we fix it to float rather than
-    // templating this code for no benefit.
     std::pair<GraphBuildFn, GraphRenderFn> makeNativeGraphFns(
         const std::shared_ptr<elem::Runtime<float>>& runtime,
         std::function<elem::lib::NodeRepr(size_t)> nextGraph);
