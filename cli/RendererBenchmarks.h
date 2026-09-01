@@ -11,16 +11,13 @@
 
 namespace benchmark {
     // TODO: Name this better. Something like sine_wave_no_key
-    template <typename FloatType>
     std::pair<GraphBuildFn, GraphRenderFn> makeRenderSineNoKeyBenchmark(
-        const std::shared_ptr<elem::Runtime<FloatType>>& runtime);
+        const std::shared_ptr<elem::Runtime<float>>& runtime);
 
-    template <typename FloatType>
     using NativeScenarioFactory = std::function<std::pair<GraphBuildFn, GraphRenderFn>(
-        const std::shared_ptr<elem::Runtime<FloatType>>&)>;
+        const std::shared_ptr<elem::Runtime<float>>&)>;
 
     // Names every native renderer scenario so the CLI can look one up by name
     // (or list them) without a hardcoded switch statement at the call site.
-    template <typename FloatType>
-    const std::map<std::string, NativeScenarioFactory<FloatType>>& nativeRendererScenarios();
+    const std::map<std::string, NativeScenarioFactory>& nativeRendererScenarios();
 }

@@ -61,7 +61,8 @@ performance benchmarks rather than audio playback. It has three subcommands:
 
 ```bash
 # Benchmark the realtime audio processing step (runtime->process) against a
-# JS-defined audio graph.
+# JS-defined audio graph. Always runs against both float and double
+# instantiations of the runtime.
 ./build/cli/Debug/elembench runtime examples/dist/00_HelloSine.js
 
 # Benchmark the JS renderer: repeatedly builds and renders a new graph via a
@@ -75,6 +76,3 @@ performance benchmarks rather than audio playback. It has three subcommands:
 ./build/cli/Debug/elembench renderer native --list
 ./build/cli/Debug/elembench renderer native sine_no_key
 ```
-
-All three subcommands accept `--float-type=float|double|both` (default `both`) to
-restrict which `FloatType` instantiation is benchmarked.

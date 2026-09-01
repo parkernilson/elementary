@@ -46,12 +46,11 @@ namespace benchmark {
         std::cout << "Done" << std::endl << std::endl;
     }
 
-    template <typename FloatType>
     std::pair<GraphBuildFn, GraphRenderFn> makeNativeGraphFns(
-        const std::shared_ptr<elem::Runtime<FloatType>>& runtime,
+        const std::shared_ptr<elem::Runtime<float>>& runtime,
         std::function<elem::lib::NodeRepr(size_t)> nextGraph) {
 
-        auto renderer = std::make_shared<elem::Renderer<FloatType>>(runtime);
+        auto renderer = std::make_shared<elem::Renderer<float>>(runtime);
         auto curGraph = std::make_shared<elem::lib::NodeRepr>();
 
         GraphBuildFn build = [curGraph, nextGraph = std::move(nextGraph)](size_t i) {
@@ -80,9 +79,8 @@ namespace benchmark {
         return {std::move(build), std::move(render)};
     }
 
-    template <typename FloatType>
     std::pair<GraphBuildFn, GraphRenderFn> makeJSGraphFns(
-        const std::shared_ptr<elem::Runtime<FloatType>>& runtime,
+        const std::shared_ptr<elem::Runtime<float>>& runtime,
         const std::string& jsFileName) {
 
         auto ctx = std::make_shared<choc::javascript::Context>(choc::javascript::createQuickJSContext());
@@ -132,14 +130,4 @@ namespace benchmark {
 
         return {std::move(build), std::move(render)};
     }
-
-    template std::pair<GraphBuildFn, GraphRenderFn> makeNativeGraphFns<float>(
-        const std::shared_ptr<elem::Runtime<float>>&, std::function<elem::lib::NodeRepr(size_t)>);
-    template std::pair<GraphBuildFn, GraphRenderFn> makeNativeGraphFns<double>(
-        const std::shared_ptr<elem::Runtime<double>>&, std::function<elem::lib::NodeRepr(size_t)>);
-
-    template std::pair<GraphBuildFn, GraphRenderFn> makeJSGraphFns<float>(
-        const std::shared_ptr<elem::Runtime<float>>&, const std::string&);
-    template std::pair<GraphBuildFn, GraphRenderFn> makeJSGraphFns<double>(
-        const std::shared_ptr<elem::Runtime<double>>&, const std::string&);
 }

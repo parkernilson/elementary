@@ -11,92 +11,45 @@ namespace {
     void printUsage() {
         std::cout <<
             "Usage:\n"
-            "  elembench runtime <file.js> [--float-type=float|double|both]\n"
-            "  elembench renderer js <file.js> [--float-type=float|double|both]\n"
-            "  elembench renderer native <scenario-name> [--float-type=float|double|both]\n"
+            "  elembench runtime <file.js>\n"
+            "  elembench renderer js <file.js>\n"
+            "  elembench renderer native <scenario-name>\n"
             "  elembench renderer native --list\n";
     }
 
-    enum class FloatTypeOption { Float, Double, Both };
-
-    // Pulls --float-type=... out of args if present (defaulting to Both),
-    // leaving the remaining positional arguments behind.
-    FloatTypeOption parseFloatTypeOption(std::vector<std::string>& args) {
-        constexpr auto prefix = "--float-type=";
-
-        for (auto it = args.begin(); it != args.end(); ++it) {
-            if (it->rfind(prefix, 0) == 0) {
-                auto const value = it->substr(std::string(prefix).size());
-                args.erase(it);
-
-                if (value == "float") return FloatTypeOption::Float;
-                if (value == "double") return FloatTypeOption::Double;
-                if (value == "both") return FloatTypeOption::Both;
-
-                throw std::invalid_argument("Unknown --float-type value: " + value);
-            }
-        }
-
-        return FloatTypeOption::Both;
+    void runRuntimeBenchmark(std::string const& inputFileName) {
+        runBenchmark<float>("Float", inputFileName, [](auto&) {});
+        runBenchmark<double>("Double", inputFileName, [](auto&) {});
     }
 
-    void runRuntimeBenchmark(std::string const& inputFileName, FloatTypeOption floatType) {
-        if (floatType == FloatTypeOption::Float || floatType == FloatTypeOption::Both) {
-            runBenchmark<float>("Float", inputFileName, [](auto&) {});
-        }
-
-        if (floatType == FloatTypeOption::Double || floatType == FloatTypeOption::Both) {
-            runBenchmark<double>("Double", inputFileName, [](auto&) {});
-        }
-    }
-
-    template <typename FloatType>
-    void runJSRendererBenchmark(std::string const& name, std::string const& inputFileName) {
-        auto runtime = std::make_shared<elem::Runtime<FloatType>>(44100.0, 512);
-        auto [build, render] = benchmark::makeJSGraphFns<FloatType>(runtime, inputFileName);
-        const benchmark::RendererBenchmarkScenario scenario(name, std::move(build), std::move(render));
+    // The renderer benchmarks never touch Runtime::process (the realtime audio
+    // path, which is the only place FloatType actually matters), so these
+    // always run against elem::Runtime<float>.
+    void runRendererJSBenchmark(std::string const& inputFileName) {
+        auto runtime = std::make_shared<elem::Runtime<float>>(44100.0, 512);
+        auto [build, render] = benchmark::makeJSGraphFns(runtime, inputFileName);
+        const benchmark::RendererBenchmarkScenario scenario("Renderer JS", std::move(build), std::move(render));
         scenario.runBenchmark();
     }
 
-    void runRendererJSBenchmarkWithOptions(std::string const& inputFileName, const FloatTypeOption floatType) {
-        if (floatType == FloatTypeOption::Float || floatType == FloatTypeOption::Both) {
-            runJSRendererBenchmark<float>("Float", inputFileName);
-        }
-
-        if (floatType == FloatTypeOption::Double || floatType == FloatTypeOption::Both) {
-            runJSRendererBenchmark<double>("Double", inputFileName);
-        }
-    }
-
-    template <typename FloatType>
-    void runNativeRendererBenchmark(std::string const& name, std::string const& scenarioName) {
-        auto const& scenarios = benchmark::nativeRendererScenarios<FloatType>();
+    void runRendererNativeBenchmark(std::string const& scenarioName) {
+        auto const& scenarios = benchmark::nativeRendererScenarios();
         auto const it = scenarios.find(scenarioName);
 
         if (it == scenarios.end()) {
             throw std::invalid_argument("Unknown native renderer scenario: " + scenarioName);
         }
 
-        auto runtime = std::make_shared<elem::Runtime<FloatType>>(44100.0, 512);
+        auto runtime = std::make_shared<elem::Runtime<float>>(44100.0, 512);
         auto [build, render] = it->second(runtime);
-        const benchmark::RendererBenchmarkScenario scenario(name, std::move(build), std::move(render));
+        const benchmark::RendererBenchmarkScenario scenario("Renderer Native", std::move(build), std::move(render));
         scenario.runBenchmark();
-    }
-
-    void runNativeRendererBenchmarkWithOptions(std::string const& scenarioName, const FloatTypeOption floatType) {
-        if (floatType == FloatTypeOption::Float || floatType == FloatTypeOption::Both) {
-            runNativeRendererBenchmark<float>("Float", scenarioName);
-        }
-
-        if (floatType == FloatTypeOption::Double || floatType == FloatTypeOption::Both) {
-            runNativeRendererBenchmark<double>("Double", scenarioName);
-        }
     }
 
     void listNativeRendererScenarios() {
         std::cout << "Available native renderer scenarios:" << std::endl;
 
-        for (auto const& [name, factory] : benchmark::nativeRendererScenarios<float>()) {
+        for (auto const& [name, factory] : benchmark::nativeRendererScenarios()) {
             (void) factory;
             std::cout << "  " << name << std::endl;
         }
@@ -120,12 +73,11 @@ int main(int argc, char **argv)
     }
 
     try {
-        auto const floatType = parseFloatTypeOption(args);
         auto const subcommand = args.at(0);
 
         if (subcommand == "runtime") {
             if (args.size() < 2) throw std::invalid_argument("Missing argument: what file do you want to run?");
-            runRuntimeBenchmark(args.at(1), floatType);
+            runRuntimeBenchmark(args.at(1));
             return 0;
         }
 
@@ -135,7 +87,7 @@ int main(int argc, char **argv)
 
             if (rendererKind == "js") {
                 if (args.size() < 3) throw std::invalid_argument("Missing argument: what file do you want to run?");
-                runRendererJSBenchmarkWithOptions(args.at(2), floatType);
+                runRendererJSBenchmark(args.at(2));
                 return 0;
             }
 
@@ -146,7 +98,7 @@ int main(int argc, char **argv)
                 }
 
                 if (args.size() < 3) throw std::invalid_argument("Missing argument: which scenario do you want to run?");
-                runNativeRendererBenchmarkWithOptions(args.at(2), floatType);
+                runRendererNativeBenchmark(args.at(2));
                 return 0;
             }
 
