@@ -53,3 +53,28 @@ then be run with the command line to hear them:
 # directory structure
 ./build/cli/Debug/elemcli examples/dist/00_HelloSine.js
 ```
+
+## Benchmarking
+
+The `elembench` binary (built alongside `elemcli` from the same CMake project) runs
+performance benchmarks rather than audio playback. It has three subcommands:
+
+```bash
+# Benchmark the realtime audio processing step (runtime->process) against a
+# JS-defined audio graph.
+./build/cli/Debug/elembench runtime examples/dist/00_HelloSine.js
+
+# Benchmark the JS renderer: repeatedly builds and renders a new graph via a
+# JS file that defines buildNextAudioGraph(i)/renderNextAudioGraph(i). See
+# examples/renderer/benchmark-utils.js for a helper that wires these up for
+# you from a simple (i) => graph function.
+./build/cli/Debug/elembench renderer js examples/dist/renderer/00_BenchmarkSineNoKey.js
+
+# Benchmark the native (C++) renderer against a scenario compiled directly
+# into elembench. List the available scenarios with --list.
+./build/cli/Debug/elembench renderer native --list
+./build/cli/Debug/elembench renderer native sine_no_key
+```
+
+All three subcommands accept `--float-type=float|double|both` (default `both`) to
+restrict which `FloatType` instantiation is benchmarked.
