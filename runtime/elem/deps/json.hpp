@@ -5342,9 +5342,7 @@ std::size_t hash(const BasicJsonType& j)
 #ifndef JSON_NO_IO
     #include <cstdio>   // FILE *
     #include <istream>  // istream
-    #include <streambuf> // streambuf
 #endif                  // JSON_NO_IO
-#include <cerrno> // errno
 
 // #include <nlohmann/detail/iterators/iterator_traits.hpp>
 
