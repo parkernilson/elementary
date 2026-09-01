@@ -10,11 +10,9 @@
 #include <elem/Runtime.h>
 
 namespace benchmark {
-    // Cycles a single oscillator whose frequency shifts with the iteration
-    // index. All graph-building state lives in the closures returned here;
-    // no separate class is needed to carry it between build and render.
+    // TODO: Name this better. Something like sine_wave_no_key
     template <typename FloatType>
-    std::pair<GraphBuildFn, GraphRenderFn> makeRendererBenchmark1(
+    std::pair<GraphBuildFn, GraphRenderFn> makeRenderSineNoKeyBenchmark(
         std::shared_ptr<elem::Runtime<FloatType>> runtime);
 
     template <typename FloatType>

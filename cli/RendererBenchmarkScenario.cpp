@@ -14,8 +14,7 @@ namespace benchmark {
         constexpr auto RENDER_NEXT_GRAPH_FN = "renderNextAudioGraph";
     }
 
-    template <typename FloatType>
-    RendererBenchmarkScenario<FloatType>::RendererBenchmarkScenario(
+    RendererBenchmarkScenario::RendererBenchmarkScenario(
         std::string name, GraphBuildFn buildGraph, GraphRenderFn renderGraph):
         mName{std::move(name)},
         mBuildGraph{std::move(buildGraph)},
@@ -30,8 +29,7 @@ namespace benchmark {
         }
     }
 
-    template <typename FloatType>
-    void RendererBenchmarkScenario<FloatType>::runBenchmark() {
+    void RendererBenchmarkScenario::runBenchmark() const {
         std::vector<long long> buildAudioGraphDiffs;
         std::vector<long long> renderAudioGraphDiffs;
 
@@ -50,7 +48,7 @@ namespace benchmark {
 
     template <typename FloatType>
     std::pair<GraphBuildFn, GraphRenderFn> makeNativeGraphFns(
-        std::shared_ptr<elem::Runtime<FloatType>> runtime,
+        const std::shared_ptr<elem::Runtime<FloatType>>& runtime,
         std::function<elem::lib::NodeRepr(size_t)> nextGraph) {
 
         auto renderer = std::make_shared<elem::Renderer<FloatType>>(runtime);
@@ -84,8 +82,8 @@ namespace benchmark {
 
     template <typename FloatType>
     std::pair<GraphBuildFn, GraphRenderFn> makeJSGraphFns(
-        std::shared_ptr<elem::Runtime<FloatType>> runtime,
-        std::string jsFileName) {
+        const std::shared_ptr<elem::Runtime<FloatType>>& runtime,
+        const std::string& jsFileName) {
 
         auto ctx = std::make_shared<choc::javascript::Context>(choc::javascript::createQuickJSContext());
 
@@ -105,7 +103,7 @@ namespace benchmark {
         // Shim the js environment for console logging
         (void) ctx->evaluate(kConsoleShimScript);
 
-        const auto inputFile = choc::file::loadFileAsString(std::move(jsFileName));
+        const auto inputFile = choc::file::loadFileAsString(jsFileName);
         (void) ctx->evaluate(inputFile);
 
         GraphBuildFn build = [ctx](size_t i) {
@@ -135,16 +133,13 @@ namespace benchmark {
         return {std::move(build), std::move(render)};
     }
 
-    template class RendererBenchmarkScenario<float>;
-    template class RendererBenchmarkScenario<double>;
-
     template std::pair<GraphBuildFn, GraphRenderFn> makeNativeGraphFns<float>(
-        std::shared_ptr<elem::Runtime<float>>, std::function<elem::lib::NodeRepr(size_t)>);
+        const std::shared_ptr<elem::Runtime<float>>&, std::function<elem::lib::NodeRepr(size_t)>);
     template std::pair<GraphBuildFn, GraphRenderFn> makeNativeGraphFns<double>(
-        std::shared_ptr<elem::Runtime<double>>, std::function<elem::lib::NodeRepr(size_t)>);
+        const std::shared_ptr<elem::Runtime<double>>&, std::function<elem::lib::NodeRepr(size_t)>);
 
     template std::pair<GraphBuildFn, GraphRenderFn> makeJSGraphFns<float>(
-        std::shared_ptr<elem::Runtime<float>>, std::string);
+        const std::shared_ptr<elem::Runtime<float>>&, const std::string&);
     template std::pair<GraphBuildFn, GraphRenderFn> makeJSGraphFns<double>(
-        std::shared_ptr<elem::Runtime<double>>, std::string);
+        const std::shared_ptr<elem::Runtime<double>>&, const std::string&);
 }

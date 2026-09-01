@@ -6,7 +6,7 @@ function now() {
 
 // Wires up global buildNextAudioGraph/renderNextAudioGraph functions that the
 // native benchmark driver invokes by name. nextGraph(i) should return the
-// el.* graph to render for iteration i; the built graph is kept here between
+// symbolic graph to render for iteration i; the built graph is kept here between
 // the build and render calls, since the driver calls them separately with no
 // way to pass the graph between them.
 //

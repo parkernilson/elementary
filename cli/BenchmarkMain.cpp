@@ -54,11 +54,11 @@ namespace {
     void runJSRendererBenchmark(std::string const& name, std::string const& inputFileName) {
         auto runtime = std::make_shared<elem::Runtime<FloatType>>(44100.0, 512);
         auto [build, render] = benchmark::makeJSGraphFns<FloatType>(runtime, inputFileName);
-        benchmark::RendererBenchmarkScenario<FloatType> scenario(name, std::move(build), std::move(render));
+        const benchmark::RendererBenchmarkScenario scenario(name, std::move(build), std::move(render));
         scenario.runBenchmark();
     }
 
-    void runRendererJSBenchmark(std::string const& inputFileName, FloatTypeOption floatType) {
+    void runRendererJSBenchmarkWithOptions(std::string const& inputFileName, const FloatTypeOption floatType) {
         if (floatType == FloatTypeOption::Float || floatType == FloatTypeOption::Both) {
             runJSRendererBenchmark<float>("Float", inputFileName);
         }
@@ -79,11 +79,11 @@ namespace {
 
         auto runtime = std::make_shared<elem::Runtime<FloatType>>(44100.0, 512);
         auto [build, render] = it->second(runtime);
-        benchmark::RendererBenchmarkScenario<FloatType> scenario(name, std::move(build), std::move(render));
+        const benchmark::RendererBenchmarkScenario scenario(name, std::move(build), std::move(render));
         scenario.runBenchmark();
     }
 
-    void runRendererNativeBenchmark(std::string const& scenarioName, FloatTypeOption floatType) {
+    void runNativeRendererBenchmarkWithOptions(std::string const& scenarioName, const FloatTypeOption floatType) {
         if (floatType == FloatTypeOption::Float || floatType == FloatTypeOption::Both) {
             runNativeRendererBenchmark<float>("Float", scenarioName);
         }
@@ -131,11 +131,11 @@ int main(int argc, char **argv)
 
         if (subcommand == "renderer") {
             if (args.size() < 2) throw std::invalid_argument("Missing argument: js or native?");
-            auto const rendererKind = args.at(1);
+            auto const& rendererKind = args.at(1);
 
             if (rendererKind == "js") {
                 if (args.size() < 3) throw std::invalid_argument("Missing argument: what file do you want to run?");
-                runRendererJSBenchmark(args.at(2), floatType);
+                runRendererJSBenchmarkWithOptions(args.at(2), floatType);
                 return 0;
             }
 
@@ -146,7 +146,7 @@ int main(int argc, char **argv)
                 }
 
                 if (args.size() < 3) throw std::invalid_argument("Missing argument: which scenario do you want to run?");
-                runRendererNativeBenchmark(args.at(2), floatType);
+                runNativeRendererBenchmarkWithOptions(args.at(2), floatType);
                 return 0;
             }
 
