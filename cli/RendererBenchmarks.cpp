@@ -12,6 +12,17 @@ namespace benchmark {
         });
     }
 
+    template <typename FloatType>
+    const std::map<std::string, NativeScenarioFactory<FloatType>>& nativeRendererScenarios() {
+        static const std::map<std::string, NativeScenarioFactory<FloatType>> scenarios = {
+            {"benchmark1", &makeRendererBenchmark1<FloatType>},
+        };
+        return scenarios;
+    }
+
     template std::pair<GraphBuildFn, GraphRenderFn> makeRendererBenchmark1<float>(std::shared_ptr<elem::Runtime<float>>);
     template std::pair<GraphBuildFn, GraphRenderFn> makeRendererBenchmark1<double>(std::shared_ptr<elem::Runtime<double>>);
+
+    template const std::map<std::string, NativeScenarioFactory<float>>& nativeRendererScenarios<float>();
+    template const std::map<std::string, NativeScenarioFactory<double>>& nativeRendererScenarios<double>();
 }
