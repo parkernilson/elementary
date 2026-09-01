@@ -36,9 +36,7 @@ namespace elem
         NodeId getId() { return nodeId; }
 
         //==============================================================================
-        // The `kind` is the string identifying this node's type, e.g. "const" or "root",
-        // as registered with Runtime::registerNodeType. It's set by the Runtime immediately
-        // after construction and is otherwise unused by GraphNode itself.
+        // The kind of node this represents
         std::string getKind() { return kind; }
         void setKind(std::string k) { kind = std::move(k); }
 
@@ -70,7 +68,7 @@ namespace elem
 
         // Returns a copy of the entire property object in its current state
         js::Object getProperties();
-        js::Object getProperties() const;
+        [[nodiscard]] js::Object getProperties() const;
 
         // Process the next block of audio data.
         //
