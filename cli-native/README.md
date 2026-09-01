@@ -14,5 +14,17 @@ cmake --build build --target elemcli-native
 
 ## Running
 
-- `./build/elemcli-native` plays the graph to the default audio device. Press
-  Enter to exit.
+- `./build/elemcli-native --list` lists the available graphs.
+- `./build/elemcli-native --graph <name>` plays the named graph to the
+  default audio device. Press Enter to exit.
+- `./build/elemcli-native --help` prints usage information.
+
+## Adding a graph
+
+1. Add `graphs/MyGraph.h`/`.cpp` exposing a `buildMyGraph()` function that
+   returns a `std::vector<std::shared_ptr<elem::SymbolicGraphNode>>` (see
+   `graphs/HelloSine.h`/`.cpp` for an example).
+2. Register it by adding an entry to the vector in
+   `graphs/GraphRegistry.cpp`.
+3. Add `graphs/MyGraph.cpp` to the `elemcli_native_graph` sources in
+   `CMakeLists.txt`.

@@ -1,9 +1,11 @@
+#include <algorithm>
 #include <array>
+#include <cstring>
 #include <iostream>
 #include <memory>
 #include <vector>
 
-#include "HelloSine.h"
+#include "graphs/GraphRegistry.h"
 #include "elem/Renderer.h"
 #include "elem/Runtime.h"
 
@@ -58,8 +60,66 @@ void audioCallback(ma_device* pDevice, void* pOutput, const void* /* pInput */, 
     proxy->process(static_cast<float*>(pOutput), numChannels, numFrames);
 }
 
-int main()
+void printUsage(const char* programName)
 {
+    std::cout << "Usage: " << programName << " --graph <name>" << std::endl;
+    std::cout << std::endl;
+    std::cout << "Renders an Elementary audio graph to the default audio device." << std::endl;
+    std::cout << std::endl;
+    std::cout << "Options:" << std::endl;
+    std::cout << "  --graph <name>   Render the named graph" << std::endl;
+    std::cout << "  --list           List the available graphs" << std::endl;
+    std::cout << "  --help, -h       Show this usage information" << std::endl;
+    std::cout << std::endl;
+    std::cout << "Example:" << std::endl;
+    std::cout << "  " << programName << " --graph hello-sine" << std::endl;
+}
+
+void printGraphList()
+{
+    for (auto const& graphInfo : elem::lib::getGraphRegistry()) {
+        std::cout << graphInfo.name << " — " << graphInfo.description << std::endl;
+    }
+}
+
+int main(int argc, char** argv)
+{
+    std::string graphName;
+
+    for (int i = 1; i < argc; ++i) {
+        if (std::strcmp(argv[i], "--help") == 0 || std::strcmp(argv[i], "-h") == 0) {
+            printUsage(argv[0]);
+            return 0;
+        } else if (std::strcmp(argv[i], "--list") == 0) {
+            printGraphList();
+            return 0;
+        } else if (std::strcmp(argv[i], "--graph") == 0) {
+            if (i + 1 >= argc) {
+                std::cerr << "Error: --graph requires a graph name" << std::endl;
+                printUsage(argv[0]);
+                return 1;
+            }
+
+            graphName = argv[++i];
+        }
+    }
+
+    if (graphName.empty()) {
+        printUsage(argv[0]);
+        return 1;
+    }
+
+    auto const& registry = elem::lib::getGraphRegistry();
+    auto it = std::find_if(registry.begin(), registry.end(), [&graphName](elem::lib::GraphInfo const& graphInfo) {
+        return graphInfo.name == graphName;
+    });
+
+    if (it == registry.end()) {
+        std::cerr << "Error: unknown graph \"" << graphName << "\". Available graphs:" << std::endl;
+        printGraphList();
+        return 1;
+    }
+
     ma_result result;
 
     ma_device_config deviceConfig;
@@ -87,7 +147,7 @@ int main()
 
     // Build and render the graph before audio starts
     elem::Renderer<float> renderer(proxy->runtime);
-    auto stats = renderer.renderGraph(elem::lib::buildHelloSineGraph());
+    auto stats = renderer.renderGraph(it->build());
 
     std::cout << "Render result: " << stats.result << std::endl;
     std::cout << "Nodes added: " << stats.nodesAdded << std::endl;

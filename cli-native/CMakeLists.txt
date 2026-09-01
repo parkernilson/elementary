@@ -1,7 +1,9 @@
 cmake_minimum_required(VERSION 3.15)
 project(cli-native VERSION 0.11.0)
 
-add_library(elemcli_native_graph STATIC HelloSine.cpp)
+add_library(elemcli_native_graph STATIC
+  graphs/HelloSine.cpp
+  graphs/GraphRegistry.cpp)
 
 target_include_directories(elemcli_native_graph PUBLIC
   ${CMAKE_CURRENT_SOURCE_DIR}
