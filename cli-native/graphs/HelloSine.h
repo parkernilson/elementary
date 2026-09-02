@@ -3,8 +3,8 @@
 #include <memory>
 #include <vector>
 
-#include "elem/SymbolicGraph.h"
+#include "elem/NodeRepr.h"
 
 namespace elem::lib {
-    std::vector<std::shared_ptr<elem::SymbolicGraphNode>> buildHelloSineGraph();
+    std::vector<std::shared_ptr<elem::NodeRepr>> buildHelloSineGraph();
 }

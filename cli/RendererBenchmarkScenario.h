@@ -43,7 +43,7 @@ namespace benchmark {
 
     std::pair<GraphBuildFn, GraphRenderFn> makeNativeGraphFns(
         const std::shared_ptr<elem::Runtime<float>>& runtime,
-        std::function<elem::lib::NodeRepr(size_t)> nextGraph);
+        std::function<elem::lib::NodeReprSPtr(size_t)> nextGraph);
 
     std::pair<GraphBuildFn, GraphRenderFn> makeJSGraphFns(
         const std::shared_ptr<elem::Runtime<float>>& runtime,

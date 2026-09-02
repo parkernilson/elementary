@@ -4,7 +4,7 @@
 #include "elem/AudioBufferResource.h"
 #include "elem/Renderer.h"
 #include "elem/Runtime.h"
-#include "elem/SymbolicGraph.h"
+#include "elem/NodeRepr.h"
 
 #include "GraphSnapshotTestUtils.h"
 #include "elem/lib/Core.h"
@@ -82,8 +82,8 @@ TEST(NativeRendererSnapshotTests, DistinguishByProps) {
     elem::Renderer<float> renderer(runtime);
 
     auto renderVoice = [](std::string path, std::vector<elem::js::Number> seq) {
-        return elem::SymbolicGraph::createNode("sample", elem::js::Object{{"path", path}}, {
-            elem::SymbolicGraph::createNode("seq", elem::js::Object{{"seq", elem::js::Array(seq.begin(), seq.end())}}, {
+        return elem::NodeRepr::createNode("sample", elem::js::Object{{"path", path}}, {
+            elem::NodeRepr::createNode("seq", elem::js::Object{{"seq", elem::js::Array(seq.begin(), seq.end())}}, {
                 elem::lib::le(
                     elem::lib::phasor(elem::lib::constant(2.0)),
                     elem::lib::constant(0.5)
@@ -156,7 +156,7 @@ TEST(NativeRendererSnapshotTests, SimpleSharing) {
     EXPECT_EQ(result2.result, elem::ReturnCode::Ok());
 }
 
-static elem::lib::NodeRepr renderKeyedVoice(std::string key, double freq) {
+static elem::lib::NodeReprSPtr renderKeyedVoice(std::string key, double freq) {
     return elem::lib::sin(elem::lib::mul({
         elem::lib::constant(2.0 * elem::lib::PI<float>),
         elem::lib::phasor(elem::lib::constant(freq, key)),

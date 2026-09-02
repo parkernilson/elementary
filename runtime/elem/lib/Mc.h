@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../SymbolicGraph.h"
+#include "../NodeRepr.h"
 #include "Core.h"
 #include "NodeUtils.h"
 #include "Props.h"
@@ -16,8 +16,8 @@ namespace elem::lib {
         playbackRate, std::optional<js::Number>
     )
 
-    static std::vector<NodeRepr> sample(MCSampleProps props, js::Number channels, ElemNode gate) {
-        auto node = SymbolicGraph::createNode("mc.sample", props.takeJsObject(),
+    static std::vector<NodeReprSPtr> sample(MCSampleProps props, js::Number channels, ElemNode gate) {
+        auto node = NodeRepr::createNode("mc.sample", props.takeJsObject(),
             {resolve(std::move(gate))});
 
         return unpack(node, static_cast<int>(channels));
@@ -31,8 +31,8 @@ namespace elem::lib {
         duration, Required<js::Number>
     )
 
-    static std::vector<NodeRepr> sampleseq(MCSampleSeqProps props, js::Number channels, ElemNode time) {
-        auto node = SymbolicGraph::createNode("mc.sampleseq", props.takeJsObject(),
+    static std::vector<NodeReprSPtr> sampleseq(MCSampleSeqProps props, js::Number channels, ElemNode time) {
+        auto node = NodeRepr::createNode("mc.sampleseq", props.takeJsObject(),
             {resolve(std::move(time))});
 
         return unpack(node, static_cast<int>(channels));
@@ -48,8 +48,8 @@ namespace elem::lib {
         shift,    std::optional<js::Number>
     )
 
-    static std::vector<NodeRepr> sampleseq2(MCSampleSeq2Props props, js::Number channels, ElemNode time) {
-        auto node = SymbolicGraph::createNode("mc.sampleseq2", props.takeJsObject(),
+    static std::vector<NodeReprSPtr> sampleseq2(MCSampleSeq2Props props, js::Number channels, ElemNode time) {
+        auto node = NodeRepr::createNode("mc.sampleseq2", props.takeJsObject(),
             {resolve(std::move(time))});
 
         return unpack(node, static_cast<int>(channels));
@@ -61,8 +61,8 @@ namespace elem::lib {
         path, Required<std::string>
     )
 
-    static std::vector<NodeRepr> table(MCTableProps props, js::Number channels, ElemNode t) {
-        auto node = SymbolicGraph::createNode("mc.table", props.takeJsObject(),
+    static std::vector<NodeReprSPtr> table(MCTableProps props, js::Number channels, ElemNode t) {
+        auto node = NodeRepr::createNode("mc.table", props.takeJsObject(),
             {resolve(std::move(t))});
 
         return unpack(node, static_cast<int>(channels));
@@ -73,13 +73,13 @@ namespace elem::lib {
         name, std::optional<std::string>
     )
 
-    static std::vector<NodeRepr> capture(MCCaptureProps props, js::Number channels, ElemNode g, std::vector<ElemNode> args) {
+    static std::vector<NodeReprSPtr> capture(MCCaptureProps props, js::Number channels, ElemNode g, std::vector<ElemNode> args) {
         std::vector<ElemNode> children;
         children.reserve(args.size() + 1);
         children.push_back(std::move(g));
         children.insert(children.end(), std::make_move_iterator(args.begin()), std::make_move_iterator(args.end()));
 
-        auto node = SymbolicGraph::createNode("mc.capture", props.takeJsObject(),
+        auto node = NodeRepr::createNode("mc.capture", props.takeJsObject(),
             resolve(std::move(children)));
 
         return unpack(node, static_cast<int>(channels));

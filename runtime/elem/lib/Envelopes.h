@@ -13,7 +13,7 @@ namespace elem::lib {
      * When the gate is high (1), this generates the ADS phase. When the gate is
      * low (0), the R phase.
      */
-    static NodeRepr adsr(
+    static NodeReprSPtr adsr(
         ElemNode attackSec,
         ElemNode decaySec,
         ElemNode sustain,

@@ -10,7 +10,7 @@
 namespace elem {
     using OutputChannel = int32_t;
 
-    struct SymbolicGraphNodeShallow {
+    struct NodeReprShallow {
         NodeId hash;
         std::string kind;
         js::Object props;
@@ -18,24 +18,22 @@ namespace elem {
     };
 
     /**
-     * The symbolic representation of an Elementary Audio Graph.
+     * The virtual representation of an Elementary Audio Graph.
      * This represents the structure without being coupled to the implementation of
      * the audio engine, and is used to describe the desired state that the renderer
      * should realize.
      */
-    struct SymbolicGraphNode : SymbolicGraphNodeShallow {
-        std::vector<std::shared_ptr<SymbolicGraphNode>> children;
+    struct NodeRepr : NodeReprShallow {
+        std::vector<std::shared_ptr<NodeRepr>> children;
 
-        SymbolicGraphNode(const NodeId hash, std::string kind, js::Object props, const OutputChannel outputChannel,
-                          std::vector<std::shared_ptr<SymbolicGraphNode>> children)
-            : SymbolicGraphNodeShallow{hash, std::move(kind), std::move(props), outputChannel}
+        NodeRepr(const NodeId hash, std::string kind, js::Object props, const OutputChannel outputChannel,
+                          std::vector<std::shared_ptr<NodeRepr>> children)
+            : NodeReprShallow{hash, std::move(kind), std::move(props), outputChannel}
               , children(std::move(children)) {
         }
-    };
 
-    namespace SymbolicGraph {
-        static std::shared_ptr<SymbolicGraphNode> createNode(std::string kind, js::Object props,
-                                            std::vector<std::shared_ptr<SymbolicGraphNode>> children) {
+        static std::shared_ptr<NodeRepr> createNode(std::string kind, js::Object props,
+                                            std::vector<std::shared_ptr<NodeRepr>> children) {
             std::vector<NodeId> childHashes;
             childHashes.reserve(children.size());
             for (const auto &child: children) {
@@ -46,7 +44,7 @@ namespace elem {
                 childHashes.push_back(HashUtils::mixNumber(child->hash, child->outputChannel));
             }
 
-            return std::make_shared<SymbolicGraphNode>(
+            return std::make_shared<NodeRepr>(
                 HashUtils::hashNode(kind, props, childHashes),
                 std::move(kind),
                 std::move(props),
@@ -55,19 +53,19 @@ namespace elem {
             );
         }
 
-        static std::vector<std::shared_ptr<SymbolicGraphNode>> unpack(const std::shared_ptr<SymbolicGraphNode>& node, const int numChannels) {
-            std::vector<std::shared_ptr<SymbolicGraphNode>> siblings;
+        static std::vector<std::shared_ptr<NodeRepr>> unpack(const std::shared_ptr<NodeRepr>& node, const int numChannels) {
+            std::vector<std::shared_ptr<NodeRepr>> siblings;
             siblings.reserve(numChannels);
 
             node->outputChannel = 0;
             for (int i = 1; i < numChannels; i++) {
-                auto sibling = std::make_shared<SymbolicGraphNode>(*node);
+                auto sibling = std::make_shared<NodeRepr>(*node);
                 sibling->outputChannel = i;
                 siblings.push_back(sibling);
             }
 
             return siblings;
         }
-    }
+    };
 }
 

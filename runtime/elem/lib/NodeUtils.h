@@ -1,20 +1,20 @@
 #pragma once
 #include <variant>
 
-#include "../SymbolicGraph.h"
+#include "../NodeRepr.h"
 #include "../Value.h"
 
 namespace elem::lib {
-    using ElemNode = std::variant<std::shared_ptr<SymbolicGraphNode>, js::Number>;
-    using NodeRepr = std::shared_ptr<SymbolicGraphNode>;
+    using NodeReprSPtr = std::shared_ptr<NodeRepr>;
+    using ElemNode = std::variant<NodeReprSPtr, js::Number>;
 
-    static NodeRepr constant(const js::Number value, std::optional<std::string> key=std::nullopt) {
+    static NodeReprSPtr constant(const js::Number value, std::optional<std::string> key=std::nullopt) {
         js::Object props;
         props.insert({"value", value});
         if (key.has_value()) {
             props.insert({"key", std::move(*key)});
         }
-        return SymbolicGraph::createNode("const", std::move(props), {});
+        return NodeRepr::createNode("const", std::move(props), {});
     }
 
     /**
@@ -22,19 +22,19 @@ namespace elem::lib {
      * be written as numerical values. The `resolve` method wraps theses literal
      * representations with the correct node.
      */
-    static NodeRepr resolve(ElemNode repr) {
+    static NodeReprSPtr resolve(ElemNode repr) {
         return std::visit([](auto&& r) {
            using T = std::decay_t<decltype(r)>;
            if constexpr (std::is_same_v<T, double>) {
                return constant(std::forward<decltype(r)>(r));
-           } else if constexpr (std::is_same_v<T, std::shared_ptr<SymbolicGraphNode>>) {
+           } else if constexpr (std::is_same_v<T, NodeReprSPtr>) {
                return std::forward<decltype(r)>(r);
            }
        }, repr);
     }
 
-    static std::vector<NodeRepr> resolve(std::vector<ElemNode> xs) {
-        std::vector<std::shared_ptr<SymbolicGraphNode>> res;
+    static std::vector<NodeReprSPtr> resolve(std::vector<ElemNode> xs) {
+        std::vector<NodeReprSPtr> res;
         res.reserve(xs.size());
         for (auto& x : xs) {
             res.emplace_back(resolve(std::move(x)));
@@ -45,12 +45,12 @@ namespace elem::lib {
     /**
      * Utility function for addressing multiple output channels from a given graph node.
      */
-    static std::vector<NodeRepr> unpack(const NodeRepr& node, const int numChannels) {
-        std::vector<NodeRepr> result;
+    static std::vector<NodeReprSPtr> unpack(const NodeReprSPtr& node, const int numChannels) {
+        std::vector<NodeReprSPtr> result;
         result.reserve(numChannels);
 
         for (int i = 0; i < numChannels; i++) {
-            auto copy = std::make_shared<SymbolicGraphNode>(*node);
+            auto copy = std::make_shared<NodeRepr>(*node);
             copy->outputChannel = i;
             result.push_back(std::move(copy));
         }

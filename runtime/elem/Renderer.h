@@ -6,7 +6,7 @@
 #include <unordered_set>
 
 #include "Runtime.h"
-#include "SymbolicGraph.h"
+#include "NodeRepr.h"
 
 namespace elem {
     namespace JsInstructionType {
@@ -66,7 +66,7 @@ namespace elem {
     };
 
     struct NodeRef {
-        std::shared_ptr<SymbolicGraphNode> node;
+        std::shared_ptr<NodeRepr> node;
         std::function<RenderResult(js::Object newProps)> setter;
     };
 
@@ -75,9 +75,9 @@ namespace elem {
     public:
         explicit Renderer(std::shared_ptr<Runtime<FloatType> > runtime);
 
-        RenderResult renderGraph(std::vector<std::shared_ptr<SymbolicGraphNode>> graphs, RenderOptions options = {});
+        RenderResult renderGraph(std::vector<std::shared_ptr<NodeRepr>> graphs, RenderOptions options = {});
 
-        NodeRef createRef(std::string kind, js::Object props, std::vector<std::shared_ptr<SymbolicGraphNode>> children);
+        NodeRef createRef(std::string kind, js::Object props, std::vector<std::shared_ptr<NodeRepr>> children);
 
     private:
         static js::Array makeCreateNodeInstruction(std::string kind, NodeId hash);
@@ -93,7 +93,7 @@ namespace elem {
 
         static void updateNodeProps(NodeId hash, const js::Object& oldProps, const js::Object& newProps, InstructionBatch &batch);
 
-        void mount(const SymbolicGraphNode &node, InstructionBatch &batch);
+        void mount(const NodeRepr &node, InstructionBatch &batch);
 
         std::shared_ptr<Runtime<FloatType> > mRuntime;
         NodeId nextRefId = 0;
@@ -113,7 +113,7 @@ namespace elem {
     }
 
     template<typename FloatType>
-    void Renderer<FloatType>::mount(const SymbolicGraphNode &node, InstructionBatch &batch) {
+    void Renderer<FloatType>::mount(const NodeRepr &node, InstructionBatch &batch) {
         if (const auto *existingNode = mRuntime->findNode(node.hash); existingNode != nullptr) {
             updateNodeProps(node.hash, existingNode->getProperties(), node.props, batch);
         } else {
@@ -128,20 +128,20 @@ namespace elem {
     }
 
     template<typename FloatType>
-    RenderResult Renderer<FloatType>::renderGraph(std::vector<std::shared_ptr<SymbolicGraphNode>> graphs, const RenderOptions options) {
+    RenderResult Renderer<FloatType>::renderGraph(std::vector<std::shared_ptr<NodeRepr>> graphs, const RenderOptions options) {
         auto const t0 = std::chrono::steady_clock::now();
 
         std::unordered_set<NodeId> visited;
         InstructionBatch instructions;
 
         // Wrap the roots of the graph in root-type nodes
-        std::vector<std::shared_ptr<SymbolicGraphNode>> roots;
+        std::vector<std::shared_ptr<NodeRepr>> roots;
         roots.reserve(graphs.size());
         for (int i = 0; i < graphs.size(); ++i) {
-            std::vector<std::shared_ptr<SymbolicGraphNode>> children;
+            std::vector<std::shared_ptr<NodeRepr>> children;
             children.push_back(std::move(graphs[i]));
             roots.push_back(
-                SymbolicGraph::createNode(
+                NodeRepr::createNode(
                     "root",
                     {
                         {"channel", static_cast<js::Number>(i)},
@@ -153,7 +153,7 @@ namespace elem {
             );
         }
 
-        std::vector<std::shared_ptr<SymbolicGraphNode>> stack;
+        std::vector<std::shared_ptr<NodeRepr>> stack;
         for (const auto &root: roots) {
             stack.push_back(root);
         }
@@ -200,9 +200,9 @@ namespace elem {
     }
 
     template<typename FloatType>
-    NodeRef Renderer<FloatType>::createRef(std::string kind, js::Object props, std::vector<std::shared_ptr<SymbolicGraphNode>> children) {
+    NodeRef Renderer<FloatType>::createRef(std::string kind, js::Object props, std::vector<std::shared_ptr<NodeRepr>> children) {
         props["key"] = "__refKey:" + std::to_string(nextRefId++);
-        auto node = SymbolicGraph::createNode(std::move(kind), std::move(props), std::move(children));
+        auto node = NodeRepr::createNode(std::move(kind), std::move(props), std::move(children));
 
         std::weak_ptr<Runtime<FloatType>> wRuntime = mRuntime;
 

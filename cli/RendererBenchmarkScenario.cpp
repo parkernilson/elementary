@@ -48,10 +48,10 @@ namespace benchmark {
 
     std::pair<GraphBuildFn, GraphRenderFn> makeNativeGraphFns(
         const std::shared_ptr<elem::Runtime<float>>& runtime,
-        std::function<elem::lib::NodeRepr(size_t)> nextGraph) {
+        std::function<elem::lib::NodeReprSPtr(size_t)> nextGraph) {
 
         auto renderer = std::make_shared<elem::Renderer<float>>(runtime);
-        auto curGraph = std::make_shared<elem::lib::NodeRepr>();
+        auto curGraph = std::make_shared<elem::lib::NodeReprSPtr>();
 
         GraphBuildFn build = [curGraph, nextGraph = std::move(nextGraph)](size_t i) {
             const auto t0 = std::chrono::steady_clock::now();

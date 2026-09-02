@@ -4,39 +4,39 @@
 #include <type_traits>
 #include <utility>
 
-#include "../SymbolicGraph.h"
+#include "../NodeRepr.h"
 #include "NodeUtils.h"
 #include "Props.h"
 
 namespace elem::lib {
 
-    static NodeRepr sr() {
-        return SymbolicGraph::createNode("sr", {}, {});
+    static NodeReprSPtr sr() {
+        return NodeRepr::createNode("sr", {}, {});
     }
 
-    static NodeRepr time() {
-        return SymbolicGraph::createNode("time", {}, {});
+    static NodeReprSPtr time() {
+        return NodeRepr::createNode("time", {}, {});
     }
 
-    static NodeRepr counter(ElemNode gate) {
-        return SymbolicGraph::createNode("counter", {}, {resolve(std::move(gate))});
+    static NodeReprSPtr counter(ElemNode gate) {
+        return NodeRepr::createNode("counter", {}, {resolve(std::move(gate))});
     }
 
-    static NodeRepr accum(ElemNode xn, ElemNode reset) {
-        return SymbolicGraph::createNode("accum", {},
+    static NodeReprSPtr accum(ElemNode xn, ElemNode reset) {
+        return NodeRepr::createNode("accum", {},
             resolve({std::move(xn), std::move(reset)}));
     }
 
-    static NodeRepr phasor(ElemNode rate) {
-        return SymbolicGraph::createNode("phasor", {}, {resolve(std::move(rate))});
+    static NodeReprSPtr phasor(ElemNode rate) {
+        return NodeRepr::createNode("phasor", {}, {resolve(std::move(rate))});
     }
 
-    static NodeRepr syncphasor(ElemNode rate, ElemNode reset) {
-        return SymbolicGraph::createNode("sphasor", {}, {resolve(std::move(rate)), resolve(std::move(reset))});
+    static NodeReprSPtr syncphasor(ElemNode rate, ElemNode reset) {
+        return NodeRepr::createNode("sphasor", {}, {resolve(std::move(rate)), resolve(std::move(reset))});
     }
 
-    static NodeRepr latch(ElemNode t, ElemNode x) {
-        return SymbolicGraph::createNode("latch", {},
+    static NodeReprSPtr latch(ElemNode t, ElemNode x) {
+        return NodeRepr::createNode("latch", {},
             resolve({std::move(t), std::move(x)}));
     }
 
@@ -46,8 +46,8 @@ namespace elem::lib {
         hold, std::optional<double>
     )
 
-    static NodeRepr maxhold(MaxHoldProps props, ElemNode x, ElemNode reset) {
-        return SymbolicGraph::createNode("maxhold", props.takeJsObject(),
+    static NodeReprSPtr maxhold(MaxHoldProps props, ElemNode x, ElemNode reset) {
+        return NodeRepr::createNode("maxhold", props.takeJsObject(),
             resolve({std::move(x), std::move(reset)}));
     }
 
@@ -57,8 +57,8 @@ namespace elem::lib {
         arm, std::optional<bool>
     )
 
-    static NodeRepr once(OnceProps props, ElemNode x) {
-        return SymbolicGraph::createNode("once", props.takeJsObject(),
+    static NodeReprSPtr once(OnceProps props, ElemNode x) {
+        return NodeRepr::createNode("once", props.takeJsObject(),
             {resolve(std::move(x))});
     }
 
@@ -68,8 +68,8 @@ namespace elem::lib {
         seed, std::optional<js::Number>
     )
 
-    static NodeRepr rand(RandProps props={}) {
-        return SymbolicGraph::createNode("rand", props.takeJsObject(), {});
+    static NodeReprSPtr rand(RandProps props={}) {
+        return NodeRepr::createNode("rand", props.takeJsObject(), {});
     }
 
     DEFINE_PROPS_STRUCT(
@@ -79,8 +79,8 @@ namespace elem::lib {
         interval, std::optional<js::Number>
     )
 
-    static NodeRepr metro(MetroProps props) {
-        return SymbolicGraph::createNode("metro", props.takeJsObject(), {});
+    static NodeReprSPtr metro(MetroProps props) {
+        return NodeRepr::createNode("metro", props.takeJsObject(), {});
     }
 
     // TODO: Can mode be a variant?
@@ -93,8 +93,8 @@ namespace elem::lib {
         stopOffset,  std::optional<js::Number>
     )
 
-    static NodeRepr sample(SampleProps props, ElemNode trigger, ElemNode rate) {
-        return SymbolicGraph::createNode("sample", props.takeJsObject(),
+    static NodeReprSPtr sample(SampleProps props, ElemNode trigger, ElemNode rate) {
+        return NodeRepr::createNode("sample", props.takeJsObject(),
             resolve({std::move(trigger), std::move(rate)}));
     }
 
@@ -104,8 +104,8 @@ namespace elem::lib {
         path,       Required<std::string>
     )
 
-    static NodeRepr table(TableProps props, ElemNode t) {
-        return SymbolicGraph::createNode("table", props.takeJsObject(),
+    static NodeReprSPtr table(TableProps props, ElemNode t) {
+        return NodeRepr::createNode("table", props.takeJsObject(),
             {resolve(std::move(t))});
     }
 
@@ -115,8 +115,8 @@ namespace elem::lib {
         path,       Required<std::string>
     )
 
-    static NodeRepr convolve(ConvolveProps props, ElemNode x) {
-        return SymbolicGraph::createNode("convolve", props.takeJsObject(),
+    static NodeReprSPtr convolve(ConvolveProps props, ElemNode x) {
+        return NodeRepr::createNode("convolve", props.takeJsObject(),
             {resolve(std::move(x))});
     }
 
@@ -129,13 +129,13 @@ namespace elem::lib {
         loop,       std::optional<bool>
     )
 
-    static NodeRepr seq(SeqProps props, ElemNode trigger, ElemNode reset) {
-        return SymbolicGraph::createNode("seq", props.takeJsObject(),
+    static NodeReprSPtr seq(SeqProps props, ElemNode trigger, ElemNode reset) {
+        return NodeRepr::createNode("seq", props.takeJsObject(),
             resolve({std::move(trigger), std::move(reset)}));
     }
 
-    static NodeRepr seq2(SeqProps props, ElemNode trigger, ElemNode reset) {
-        return SymbolicGraph::createNode("seq2", props.takeJsObject(),
+    static NodeReprSPtr seq2(SeqProps props, ElemNode trigger, ElemNode reset) {
+        return NodeRepr::createNode("seq2", props.takeJsObject(),
             resolve({std::move(trigger), std::move(reset)}));
     }
 
@@ -156,8 +156,8 @@ namespace elem::lib {
         tickInterval,   std::optional<js::Number>
     );
 
-    static NodeRepr sparseq(SparSeqProps props, ElemNode trigger, ElemNode reset) {
-        return SymbolicGraph::createNode("sparseq", props.takeJsObject(),
+    static NodeReprSPtr sparseq(SparSeqProps props, ElemNode trigger, ElemNode reset) {
+        return NodeRepr::createNode("sparseq", props.takeJsObject(),
             resolve({std::move(trigger), std::move(reset)}));
     }
 
@@ -173,8 +173,8 @@ namespace elem::lib {
         seq,            Required<std::vector<ValueTimeSeqStep>>
     )
 
-    static NodeRepr sparseq2(SparSeq2Props props, ElemNode time) {
-        return SymbolicGraph::createNode("sparseq2", props.takeJsObject(),
+    static NodeReprSPtr sparseq2(SparSeq2Props props, ElemNode time) {
+        return NodeRepr::createNode("sparseq2", props.takeJsObject(),
             {resolve(std::move(time))});
     }
 
@@ -186,11 +186,11 @@ namespace elem::lib {
         duration,       Required<js::Number>
     )
 
-    static NodeRepr sampleseq(
+    static NodeReprSPtr sampleseq(
         SampleSeqProps props,
         ElemNode time
     ) {
-        return SymbolicGraph::createNode("sampleseq", props.takeJsObject(),
+        return NodeRepr::createNode("sampleseq", props.takeJsObject(),
             {resolve(std::move(time))});
     }
 
@@ -204,26 +204,26 @@ namespace elem::lib {
         shift,          std::optional<js::Number>
     )
 
-    static NodeRepr sampleseq2(
+    static NodeReprSPtr sampleseq2(
         SampleSeq2Props props,
         ElemNode time
     ) {
-        return SymbolicGraph::createNode("sampleseq2", props.takeJsObject(),
+        return NodeRepr::createNode("sampleseq2", props.takeJsObject(),
             {resolve(std::move(time))});
     }
 
-    static NodeRepr pole(ElemNode p, ElemNode x) {
-        return SymbolicGraph::createNode("pole", {},
+    static NodeReprSPtr pole(ElemNode p, ElemNode x) {
+        return NodeRepr::createNode("pole", {},
             resolve({std::move(p), std::move(x)}));
     }
 
-    static NodeRepr env(ElemNode atkPole, ElemNode relPole, ElemNode x) {
-        return SymbolicGraph::createNode("env", {},
+    static NodeReprSPtr env(ElemNode atkPole, ElemNode relPole, ElemNode x) {
+        return NodeRepr::createNode("env", {},
             resolve({std::move(atkPole), std::move(relPole), std::move(x)}));
     }
 
-    static NodeRepr z(ElemNode x) {
-        return SymbolicGraph::createNode("z", {}, {resolve(std::move(x))});
+    static NodeReprSPtr z(ElemNode x) {
+        return NodeRepr::createNode("z", {}, {resolve(std::move(x))});
     }
 
     DEFINE_PROPS_STRUCT(
@@ -232,8 +232,8 @@ namespace elem::lib {
         size,       Required<js::Number>
     )
 
-    static NodeRepr delay(DelayProps props, ElemNode len, ElemNode fb, ElemNode x) {
-        return SymbolicGraph::createNode("delay", props.takeJsObject(),
+    static NodeReprSPtr delay(DelayProps props, ElemNode len, ElemNode fb, ElemNode x) {
+        return NodeRepr::createNode("delay", props.takeJsObject(),
             resolve({std::move(len), std::move(fb), std::move(x)}));
     }
 
@@ -243,13 +243,13 @@ namespace elem::lib {
         size,       Required<js::Number>
     )
 
-    static NodeRepr sdelay(SDelayProps props, ElemNode x) {
-        return SymbolicGraph::createNode("sdelay", props.takeJsObject(),
+    static NodeReprSPtr sdelay(SDelayProps props, ElemNode x) {
+        return NodeRepr::createNode("sdelay", props.takeJsObject(),
             {resolve(std::move(x))});
     }
 
-    static NodeRepr prewarp(ElemNode fc) {
-        return SymbolicGraph::createNode("prewarp", {}, {resolve(std::move(fc))});
+    static NodeReprSPtr prewarp(ElemNode fc) {
+        return NodeRepr::createNode("prewarp", {}, {resolve(std::move(fc))});
     }
 
     // TODO: Maybe we could make mode into an enum or variant to enumerate its possible values
@@ -260,8 +260,8 @@ namespace elem::lib {
         mode,       std::optional<std::string>
     )
 
-    static NodeRepr mm1p(MM1PProps props, ElemNode fc, ElemNode x) {
-        return SymbolicGraph::createNode("mm1p", props.takeJsObject(),
+    static NodeReprSPtr mm1p(MM1PProps props, ElemNode fc, ElemNode x) {
+        return NodeRepr::createNode("mm1p", props.takeJsObject(),
             resolve({std::move(fc), std::move(x)}));
     }
 
@@ -271,8 +271,8 @@ namespace elem::lib {
         mode,       std::optional<std::string>
     )
 
-    static NodeRepr svf(SVFProps props, ElemNode fc, ElemNode q, ElemNode x) {
-        return SymbolicGraph::createNode("svf", props.takeJsObject(),
+    static NodeReprSPtr svf(SVFProps props, ElemNode fc, ElemNode q, ElemNode x) {
+        return NodeRepr::createNode("svf", props.takeJsObject(),
             resolve({std::move(fc), std::move(q), std::move(x)}));
     }
 
@@ -282,12 +282,12 @@ namespace elem::lib {
         mode,       std::optional<std::string>
     )
 
-    static NodeRepr svfshelf(SVFShelfProps props, ElemNode fc, ElemNode q, ElemNode gainDecibels, ElemNode x) {
-        return SymbolicGraph::createNode("svfshelf", props.takeJsObject(),
+    static NodeReprSPtr svfshelf(SVFShelfProps props, ElemNode fc, ElemNode q, ElemNode gainDecibels, ElemNode x) {
+        return NodeRepr::createNode("svfshelf", props.takeJsObject(),
             resolve({std::move(fc), std::move(q), std::move(gainDecibels), std::move(x)}));
     }
 
-    static NodeRepr biquad(
+    static NodeReprSPtr biquad(
         ElemNode b0,
         ElemNode b1,
         ElemNode b2,
@@ -295,7 +295,7 @@ namespace elem::lib {
         ElemNode a2,
         ElemNode x
     ) {
-        return SymbolicGraph::createNode("biquad", {},
+        return NodeRepr::createNode("biquad", {},
                                          resolve({
                                              std::move(b0), std::move(b1), std::move(b2),
                                              std::move(a1), std::move(a2), std::move(x)
@@ -308,12 +308,12 @@ namespace elem::lib {
         name,       Required<std::string>
     )
 
-    static NodeRepr tapIn(TapProps props) {
-        return SymbolicGraph::createNode("tapIn", props.takeJsObject(), {});
+    static NodeReprSPtr tapIn(TapProps props) {
+        return NodeRepr::createNode("tapIn", props.takeJsObject(), {});
     }
 
-    static NodeRepr tapOut(TapProps props, ElemNode x) {
-        return SymbolicGraph::createNode("tapOut", props.takeJsObject(), {resolve(std::move(x))});
+    static NodeReprSPtr tapOut(TapProps props, ElemNode x) {
+        return NodeRepr::createNode("tapOut", props.takeJsObject(), {resolve(std::move(x))});
     }
 
     DEFINE_PROPS_STRUCT(
@@ -322,8 +322,8 @@ namespace elem::lib {
         name,       std::optional<std::string>
     )
 
-    static NodeRepr meter(MeterProps props, ElemNode x) {
-        return SymbolicGraph::createNode("meter", props.takeJsObject(),
+    static NodeReprSPtr meter(MeterProps props, ElemNode x) {
+        return NodeRepr::createNode("meter", props.takeJsObject(),
             {resolve(std::move(x))});
     }
 
@@ -333,8 +333,8 @@ namespace elem::lib {
         name,       std::optional<std::string>
     )
 
-    static NodeRepr snapshot(SnapshotProps props, ElemNode trigger, ElemNode x) {
-        return SymbolicGraph::createNode("snapshot", props.takeJsObject(),
+    static NodeReprSPtr snapshot(SnapshotProps props, ElemNode trigger, ElemNode x) {
+        return NodeRepr::createNode("snapshot", props.takeJsObject(),
             resolve({std::move(trigger), std::move(x)}));
     }
 
@@ -346,8 +346,8 @@ namespace elem::lib {
         channels,   std::optional<js::Number>
     )
 
-    static NodeRepr scope(ScopeProps props, std::vector<ElemNode> children) {
-        return SymbolicGraph::createNode("scope", props.takeJsObject(),
+    static NodeReprSPtr scope(ScopeProps props, std::vector<ElemNode> children) {
+        return NodeRepr::createNode("scope", props.takeJsObject(),
             resolve(std::move(children)));
     }
 
@@ -358,8 +358,8 @@ namespace elem::lib {
         size,       std::optional<js::Number>
     )
 
-    static NodeRepr fft(FFTProps props, ElemNode x) {
-        return SymbolicGraph::createNode("fft", props.takeJsObject(),
+    static NodeReprSPtr fft(FFTProps props, ElemNode x) {
+        return NodeRepr::createNode("fft", props.takeJsObject(),
             {resolve(std::move(x))});
     }
 
@@ -368,8 +368,8 @@ namespace elem::lib {
         key,        std::optional<std::string>
     )
 
-    static NodeRepr capture(CaptureProps props, ElemNode g, ElemNode x) {
-        return SymbolicGraph::createNode("capture", props.takeJsObject(),
+    static NodeReprSPtr capture(CaptureProps props, ElemNode g, ElemNode x) {
+        return NodeRepr::createNode("capture", props.takeJsObject(),
             resolve({std::move(g), std::move(x)}));
     }
 }
