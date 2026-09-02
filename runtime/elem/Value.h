@@ -48,7 +48,6 @@ namespace js
         Value (Null v)                  : var(v) {}
         Value (Boolean v)               : var(v) {}
         Value (Number v)                : var(v) {}
-        Value (uint32_t v)              : var(static_cast<Number>(v)) {}
         Value (int32_t v)               : var(static_cast<Number>(v)) {}
         Value (char const* v)           : var(String(v)) {}
         Value (String const& v)         : var(v) {}
