@@ -28,35 +28,35 @@ namespace elem::lib {
     }
 
     static NodeReprSPtr lowpass(ElemNode fc, ElemNode q, ElemNode x) {
-        return svf({.mode = "lowpass"}, std::move(fc), std::move(q), std::move(x));
+        return svf({{}, "lowpass"}, std::move(fc), std::move(q), std::move(x));
     }
 
     static NodeReprSPtr highpass(ElemNode fc, ElemNode q, ElemNode x) {
-        return svf({.mode = "highpass"}, std::move(fc), std::move(q), std::move(x));
+        return svf({{}, "highpass"}, std::move(fc), std::move(q), std::move(x));
     }
 
     static NodeReprSPtr bandpass(ElemNode fc, ElemNode q, ElemNode x) {
-        return svf({.mode = "bandpass"}, std::move(fc), std::move(q), std::move(x));
+        return svf({{}, "bandpass"}, std::move(fc), std::move(q), std::move(x));
     }
 
     static NodeReprSPtr notch(ElemNode fc, ElemNode q, ElemNode x) {
-        return svf({.mode = "notch"}, std::move(fc), std::move(q), std::move(x));
+        return svf({{}, "notch"}, std::move(fc), std::move(q), std::move(x));
     }
 
     static NodeReprSPtr allpass(ElemNode fc, ElemNode q, ElemNode x) {
-        return svf({.mode = "allpass"}, std::move(fc), std::move(q), std::move(x));
+        return svf({{}, "allpass"}, std::move(fc), std::move(q), std::move(x));
     }
 
     static NodeReprSPtr peak(ElemNode fc, ElemNode q, ElemNode gainDecibels, ElemNode x) {
-        return svfshelf({.mode = "peak"}, std::move(fc), std::move(q), std::move(gainDecibels), std::move(x));
+        return svfshelf({{}, "peak"}, std::move(fc), std::move(q), std::move(gainDecibels), std::move(x));
     }
 
     static NodeReprSPtr lowshelf(ElemNode fc, ElemNode q, ElemNode gainDecibels, ElemNode x) {
-        return svfshelf({.mode = "lowshelf"}, std::move(fc), std::move(q), std::move(gainDecibels), std::move(x));
+        return svfshelf({{}, "lowshelf"}, std::move(fc), std::move(q), std::move(gainDecibels), std::move(x));
     }
 
     static NodeReprSPtr highshelf(ElemNode fc, ElemNode q, ElemNode gainDecibels, ElemNode x) {
-        return svfshelf({.mode = "highshelf"}, std::move(fc), std::move(q), std::move(gainDecibels), std::move(x));
+        return svfshelf({{}, "highshelf"}, std::move(fc), std::move(q), std::move(gainDecibels), std::move(x));
     }
 
     static NodeReprSPtr pink(ElemNode x) {

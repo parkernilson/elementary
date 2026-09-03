@@ -301,9 +301,10 @@ TEST(NativeRendererSnapshotTests, McHashingReflectsOutputChannelFromChildNodes) 
 
     auto channels = elem::lib::sampleseq2(
         elem::lib::MCSampleSeq2Props{
-            .path = std::string("/v/path"),
-            .seq = {{.value = 1.0, .time = 0.0}},
-            .duration = 2.0,
+            {}, // key
+            std::string("/v/path"), // path
+            {{1.0, 0.0}}, // seq
+            2.0, // duration
         },
         2.0,
         1.0
@@ -410,7 +411,7 @@ TEST(NativeRendererSnapshotTests, RendersComposedSynthVoiceGraph) {
     };
 
     auto seqNode = elem::lib::seq(
-        elem::lib::SeqProps{.seq = elem::js::Array(arp.begin(), arp.end()), .hold = true},
+        elem::lib::SeqProps{{}, elem::js::Array(arp.begin(), arp.end()), {}, true}, // key, seq, offset, hold
         train,
         0.0
     );

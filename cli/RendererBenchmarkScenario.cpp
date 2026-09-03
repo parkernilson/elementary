@@ -59,7 +59,7 @@ namespace benchmark {
             const auto t1 = std::chrono::steady_clock::now();
 
             return BuildAudioGraphStats{
-                .timeToBuildAudioGraph = std::chrono::duration_cast<std::chrono::microseconds>(t1 - t0).count()
+                std::chrono::duration_cast<std::chrono::microseconds>(t1 - t0).count()
             };
         };
 
@@ -72,7 +72,7 @@ namespace benchmark {
             runtime->gc();
 
             return RenderAudioGraphStats{
-                .timeToRenderAudioGraph = std::chrono::duration_cast<std::chrono::microseconds>(t1 - t0).count()
+                std::chrono::duration_cast<std::chrono::microseconds>(t1 - t0).count()
             };
         };
 
@@ -111,7 +111,7 @@ namespace benchmark {
             if (!response[MICROSECONDS_TO_BUILD_GRAPH].isFloat64()) throw std::invalid_argument(std::string(MICROSECONDS_TO_BUILD_GRAPH) + " was not a float64");
 
             return BuildAudioGraphStats{
-                .timeToBuildAudioGraph = std::chrono::duration_cast<std::chrono::microseconds>(
+                std::chrono::duration_cast<std::chrono::microseconds>(
                     std::chrono::duration<double, std::micro>(response[MICROSECONDS_TO_BUILD_GRAPH].getFloat64())).count()
             };
         };
@@ -123,7 +123,7 @@ namespace benchmark {
             if (!response[MICROSECONDS_TO_RENDER_GRAPH].isFloat64()) throw std::invalid_argument(std::string(MICROSECONDS_TO_RENDER_GRAPH) + " was not a float64");
 
             return RenderAudioGraphStats{
-                .timeToRenderAudioGraph = std::chrono::duration_cast<std::chrono::microseconds>(
+                std::chrono::duration_cast<std::chrono::microseconds>(
                     std::chrono::duration<double, std::micro>(response[MICROSECONDS_TO_RENDER_GRAPH].getFloat64())).count()
             };
         };
