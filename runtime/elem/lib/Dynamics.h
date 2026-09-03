@@ -10,7 +10,7 @@ namespace elem::lib {
      * A simple hard knee compressor with parameterized attack and release times,
      * threshold, and compression ratio.
      */
-    static NodeRepr compress(
+    static NodeReprSPtr compress(
         ElemNode attackMs,
         ElemNode releaseMs,
         ElemNode threshold,
@@ -47,7 +47,7 @@ namespace elem::lib {
      *
      * Functions like regular compress when kneeWidth is 0.
      */
-    static NodeRepr skcompress(
+    static NodeReprSPtr skcompress(
         ElemNode attackMs,
         ElemNode releaseMs,
         ElemNode threshold,
